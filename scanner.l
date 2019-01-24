@@ -6,6 +6,7 @@
 #define NOVAL 4040
 #define OCTNUMBER 4041
 #define HEXNUMBER 4042
+#define REAL 4043
 
 char* yylval;
 
@@ -13,6 +14,48 @@ char* yylval;
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
 EXP ([Ee][-+]?[0-9]+)
 %%
+\+\+	{yylval = yytext; return PLUSPLUS;}
+--	{yylval = yytext; return MINUSMINUS;}
+<<	{yylval = yytext; return SHL;}
+>>	{yylval = yytext; return SHR;}
+<=	{yylval = yytext; return LTEQ;}
+>=	{yylval = yytext; return GTEQ;}
+==	{yylval = yytext; return EQEQ;}
+!=	{yylval = yytext; return NOTEQ;}
+&&	{yylval = yytext; return LOGAND;}
+||	{yylval = yytext; return LOGOR;}
+\.\.\.	{yylval = yytext; return ELLIPSIS;}
+\*=	{yylval = yytext; return TIMESEQ;}
+/=	{yylval = yytext; return DIVEQ;}
+%=	{yylval = yytext; return MODEQ;}
+\+=	{yylval = yytext; return PLUSEQ;}
+-=	{yylval = yytext; return MINUSEQ;}
+<<=	{yylval = yytext; return SHLEQ;}
+>>=	{yylval = yytext; return SHREQ;}
+&=	{yylval = yytext; return ANDEQ;}
+|=	{yylval = yytext; return OREQ;}
+^=	{yylval = yytext; return XOREQ;}
+auto	{yylval = yytext; return AUTO;}
+break	{yylval = yytext; return BREAK;}	
+case	{yylval = yytext; return CASE;}
+char	{yylval = yytext; return CHAR;}
+const	{yylval = yytext; return CONST;}
+continue	{yylval = yytext; return CONTINUE;}
+default	{yylval = yytext; return DEFAULT;}
+do	{yylval = yytext; return DO;}
+double	{yylval = yytext; return DOUBLE;}
+else	{yylval = yytext; return ELSE;}
+enum	{yylval = yytext; return ENUM;}
+extern	{yylval = yytext; return EXTERN;}
+float	{yylval = yytext; return FLOAT;}
+for	{yylval = yytext; return FOR;}
+goto	{yylval = yytext; return GOTO;}
+if	{yylval = yytext; return IF;}
+inline	{yylval = yytext; return INLINE;}
+int	{yylval = yytext; return INT;}
+long	{yylval = yytext; return LONG;}
+
+
 0[0-7]*{ILEN}?	{
 		yylval = yytext;
 		return OCTNUMBER;
@@ -25,7 +68,15 @@ EXP ([Ee][-+]?[0-9]+)
 		yylval = yytext;
 		return HEXNUMBER;
 		}
-[\+-]	{yylval=yytext;return NOVAL;}
+[0-9]+{EXP}[flFL]?	{
+		yylval = yytext;
+		return REAL;
+		}
+[~!%^&\*\(\)-\+\{\}\[\]:;<,>\.\?/]	{yylval=yytext;return *yytext;}
+([_a-zA-Z])([_a-zA-Z0-9])*	{
+		yylval = yytext;
+		return IDENT;
+		}
  .	{fprintf(stderr, "Error: unknown token %s\n", yytext);}
 
 %%
@@ -52,7 +103,7 @@ my_atoi(char* string_value, int base){
 	char num_type[4] = {'\0', '\0', '\0', '\0'};
 	to_upper(num_type, endptr);
 	if(num_type[0] == '\0'){
-		printf("number\tinteger\t%lld\tint\n", i);
+		printf("NUMBER\tINTEGER\t%lld\tINT\n", i);
 	}
 	else if(strcmp(&num_type[0], "L") == 0){
 		printf("NUMBER\tINTEGER\t%lld\tLONG\n", i);
@@ -74,6 +125,24 @@ my_atoi(char* string_value, int base){
 	}
 }
 
+realnum_parser(char* string_value){
+	char* endptr;
+	long long int i = strtoll(string_value, &endptr, 10);
+	int length = strlen(endptr);
+	char last_char = *(endptr + length - 1);
+	if(last_char == 'f' || last_char == 'F'){
+		*(endptr + length - 1) = '\0'; 
+		printf("NUMBER\tREAL\t%ld%s\tFLOAT\n", i, endptr);
+	}
+	else if(last_char == 'l' || last_char == 'L'){
+		*(endptr + length - 1) = '\0';
+		printf("NUMBER\tREAL\t%ld%s\tLONG DOUBLE\n", i, endptr);
+	}
+	else{
+		printf("NUMBER\tREAL\t%ld%s\tDOUBLE\n", i, endptr);
+	}
+}
+
 main()
 {
 int t;
@@ -87,8 +156,18 @@ int t;
 					break;
 			case HEXNUMBER: my_atoi(yylval, 16);
 					break;
+			case IDENT: printf("IDENT\t%s\n", yylval);
+					break;
+			case REAL: realnum_parser(yylval);
+					break;
+			case PLUSPLUS: printf("PLUSPLUS\n");
+					break;
+			case MINUSMINUS: printf("MINUSMINUS\n")
+					break;
 			case NOVAL: printf("%s\n", yylval);
 					break;
+			default:
+				printf("%s\n", yylval);
 		}
 	}
 	printf("EOF\n");

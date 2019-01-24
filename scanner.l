@@ -54,6 +54,10 @@ if	{yylval = yytext; return IF;}
 inline	{yylval = yytext; return INLINE;}
 int	{yylval = yytext; return INT;}
 long	{yylval = yytext; return LONG;}
+register	{yylval = yytext; return REGISTER;}
+restrict	{yylval = yytext; return RESTRICT;}
+return	{yylval = yytext; return RETURN;}
+short	{yylval = yytext; return SHORT;}
 
 
 0[0-7]*{ILEN}?	{

@@ -14,27 +14,27 @@ char* yylval;
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
 EXP ([Ee][-+]?[0-9]+)
 %%
-\+\+	{yylval = yytext; return PLUSPLUS;}
---	{yylval = yytext; return MINUSMINUS;}
-<<	{yylval = yytext; return SHL;}
->>	{yylval = yytext; return SHR;}
-<=	{yylval = yytext; return LTEQ;}
->=	{yylval = yytext; return GTEQ;}
-==	{yylval = yytext; return EQEQ;}
-!=	{yylval = yytext; return NOTEQ;}
-&&	{yylval = yytext; return LOGAND;}
-||	{yylval = yytext; return LOGOR;}
-\.\.\.	{yylval = yytext; return ELLIPSIS;}
-\*=	{yylval = yytext; return TIMESEQ;}
-/=	{yylval = yytext; return DIVEQ;}
-%=	{yylval = yytext; return MODEQ;}
-\+=	{yylval = yytext; return PLUSEQ;}
--=	{yylval = yytext; return MINUSEQ;}
-<<=	{yylval = yytext; return SHLEQ;}
->>=	{yylval = yytext; return SHREQ;}
-&=	{yylval = yytext; return ANDEQ;}
-|=	{yylval = yytext; return OREQ;}
-^=	{yylval = yytext; return XOREQ;}
+(\+\+)	{yylval = yytext; return PLUSPLUS;}
+(--)	{yylval = yytext; return MINUSMINUS;}
+(<<)	{yylval = yytext; return SHL;}
+(>>)	{yylval = yytext; return SHR;}
+(<=)	{yylval = yytext; return LTEQ;}
+(>=)	{yylval = yytext; return GTEQ;}
+(==)	{yylval = yytext; return EQEQ;}
+(!=)	{yylval = yytext; return NOTEQ;}
+(&&)	{yylval = yytext; return LOGAND;}
+(\|\|)	{yylval = yytext; return LOGOR;}
+(\.\.\.)	{yylval = yytext; return ELLIPSIS;}
+(\*=)	{yylval = yytext; return TIMESEQ;}
+(\/=)	{yylval = yytext; return DIVEQ;}
+(%=)	{yylval = yytext; return MODEQ;}
+(\+=)	{yylval = yytext; return PLUSEQ;}
+(-=)	{yylval = yytext; return MINUSEQ;}
+(<<=)	{yylval = yytext; return SHLEQ;}
+(>>=)	{yylval = yytext; return SHREQ;}
+(&=)	{yylval = yytext; return ANDEQ;}
+(\|=)	{yylval = yytext; return OREQ;}
+(^=)	{yylval = yytext; return XOREQ;}
 auto	{yylval = yytext; return AUTO;}
 break	{yylval = yytext; return BREAK;}	
 case	{yylval = yytext; return CASE;}
@@ -166,7 +166,7 @@ int t;
 					break;
 			case PLUSPLUS: printf("PLUSPLUS\n");
 					break;
-			case MINUSMINUS: printf("MINUSMINUS\n")
+			case MINUSMINUS: printf("MINUSMINUS\n");
 					break;
 			case NOVAL: printf("%s\n", yylval);
 					break;

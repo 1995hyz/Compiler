@@ -13,6 +13,9 @@ char* yylval;
 %}
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
 EXP ([Ee][-+]?[0-9]+)
+
+%x char_escape
+
 %%
 (\+\+)	{yylval = yytext; return PLUSPLUS;}
 (--)	{yylval = yytext; return MINUSMINUS;}
@@ -81,6 +84,26 @@ short	{yylval = yytext; return SHORT;}
 		yylval = yytext;
 		return IDENT;
 		}
+
+'	BEGIN(char_escape);
+<char_escape>\\([0-7]{1,3})	{
+			int num = atoi(yytext+1);
+			if(num < 33 || num > 126){
+				printf("\\%d", num);
+			}
+			else{
+				printf("\\%o", num);
+			}
+			yylval = yytext;
+			}
+<char_escape>[a-zA-Z0-9]	{
+			yylval = yytext;
+			printf("%s", yylval);
+			}
+<char_escape>'	{
+		return CHARLIT;
+		}
+
  .	{fprintf(stderr, "Error: unknown token %s\n", yytext);}
 
 %%
@@ -163,6 +186,8 @@ int t;
 			case IDENT: printf("IDENT\t%s\n", yylval);
 					break;
 			case REAL: realnum_parser(yylval);
+					break;
+			case CHARLIT: printf("\n");
 					break;
 			case PLUSPLUS: printf("PLUSPLUS\n");
 					break;

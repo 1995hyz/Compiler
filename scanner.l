@@ -9,12 +9,14 @@
 #define REAL 4043
 
 char* yylval;
+char buf[1024];
 
 %}
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
 EXP ([Ee][-+]?[0-9]+)
 
 %x char_escape
+%x WAIT_END
 
 %%
 (\+\+)	{yylval = yytext; return PLUSPLUS;}
@@ -86,6 +88,7 @@ short	{yylval = yytext; return SHORT;}
 		}
 
 '	BEGIN(char_escape);
+	
 <char_escape>\\([0-7]{1,3})	{
 			int num = atoi(yytext+1);
 			if(num < 33 || num > 126){
@@ -95,13 +98,20 @@ short	{yylval = yytext; return SHORT;}
 				printf("\\%o", num);
 			}
 			yylval = yytext;
+			BEGIN(WAIT_END);
 			}
 <char_escape>[a-zA-Z0-9]	{
-			yylval = yytext;
-			printf("%s", yylval);
+			yylval = &buf[0];
+			buf[0] = *yytext;
+			BEGIN(WAIT_END);
 			}
-<char_escape>'	{
+<WAIT_END>'	{
+		BEGIN(INITIAL);
 		return CHARLIT;
+		}
+<WAIT_END>.	{
+		//fprintf(stderr, "Warning: Unsupported multibyte character literal truncated to first byte\n");
+		;
 		}
 
  .	{fprintf(stderr, "Error: unknown token %s\n", yytext);}
@@ -187,7 +197,7 @@ int t;
 					break;
 			case REAL: realnum_parser(yylval);
 					break;
-			case CHARLIT: printf("\n");
+			case CHARLIT: printf("%s\n", yylval);
 					break;
 			case PLUSPLUS: printf("PLUSPLUS\n");
 					break;

@@ -8,7 +8,10 @@
 #define HEXNUMBER 4042
 #define REAL 4043
 
-char* yylval;
+union YYLVAL{
+	char* s;
+	long long int i;
+} yylval;
 char buf[1024];
 
 %}
@@ -19,90 +22,96 @@ EXP ([Ee][-+]?[0-9]+)
 %x WAIT_END
 
 %%
-(\+\+)	{yylval = yytext; return PLUSPLUS;}
-(--)	{yylval = yytext; return MINUSMINUS;}
-(<<)	{yylval = yytext; return SHL;}
-(>>)	{yylval = yytext; return SHR;}
-(<=)	{yylval = yytext; return LTEQ;}
-(>=)	{yylval = yytext; return GTEQ;}
-(==)	{yylval = yytext; return EQEQ;}
-(!=)	{yylval = yytext; return NOTEQ;}
-(&&)	{yylval = yytext; return LOGAND;}
-(\|\|)	{yylval = yytext; return LOGOR;}
-(\.\.\.)	{yylval = yytext; return ELLIPSIS;}
-(\*=)	{yylval = yytext; return TIMESEQ;}
-(\/=)	{yylval = yytext; return DIVEQ;}
-(%=)	{yylval = yytext; return MODEQ;}
-(\+=)	{yylval = yytext; return PLUSEQ;}
-(-=)	{yylval = yytext; return MINUSEQ;}
-(<<=)	{yylval = yytext; return SHLEQ;}
-(>>=)	{yylval = yytext; return SHREQ;}
-(&=)	{yylval = yytext; return ANDEQ;}
-(\|=)	{yylval = yytext; return OREQ;}
-(^=)	{yylval = yytext; return XOREQ;}
-auto	{yylval = yytext; return AUTO;}
-break	{yylval = yytext; return BREAK;}	
-case	{yylval = yytext; return CASE;}
-char	{yylval = yytext; return CHAR;}
-const	{yylval = yytext; return CONST;}
-continue	{yylval = yytext; return CONTINUE;}
-default	{yylval = yytext; return DEFAULT;}
-do	{yylval = yytext; return DO;}
-double	{yylval = yytext; return DOUBLE;}
-else	{yylval = yytext; return ELSE;}
-enum	{yylval = yytext; return ENUM;}
-extern	{yylval = yytext; return EXTERN;}
-float	{yylval = yytext; return FLOAT;}
-for	{yylval = yytext; return FOR;}
-goto	{yylval = yytext; return GOTO;}
-if	{yylval = yytext; return IF;}
-inline	{yylval = yytext; return INLINE;}
-int	{yylval = yytext; return INT;}
-long	{yylval = yytext; return LONG;}
-register	{yylval = yytext; return REGISTER;}
-restrict	{yylval = yytext; return RESTRICT;}
-return	{yylval = yytext; return RETURN;}
-short	{yylval = yytext; return SHORT;}
+(\+\+)	{yylval.s = yytext; return PLUSPLUS;}
+(--)	{yylval.s = yytext; return MINUSMINUS;}
+(<<)	{yylval.s = yytext; return SHL;}
+(>>)	{yylval.s = yytext; return SHR;}
+(<=)	{yylval.s = yytext; return LTEQ;}
+(>=)	{yylval.s = yytext; return GTEQ;}
+(==)	{yylval.s = yytext; return EQEQ;}
+(!=)	{yylval.s = yytext; return NOTEQ;}
+(&&)	{yylval.s = yytext; return LOGAND;}
+(\|\|)	{yylval.s = yytext; return LOGOR;}
+(\.\.\.)	{yylval.s = yytext; return ELLIPSIS;}
+(\*=)	{yylval.s = yytext; return TIMESEQ;}
+(\/=)	{yylval.s = yytext; return DIVEQ;}
+(%=)	{yylval.s = yytext; return MODEQ;}
+(\+=)	{yylval.s = yytext; return PLUSEQ;}
+(-=)	{yylval.s = yytext; return MINUSEQ;}
+(<<=)	{yylval.s = yytext; return SHLEQ;}
+(>>=)	{yylval.s = yytext; return SHREQ;}
+(&=)	{yylval.s = yytext; return ANDEQ;}
+(\|=)	{yylval.s = yytext; return OREQ;}
+(^=)	{yylval.s = yytext; return XOREQ;}
+auto	{yylval.s = yytext; return AUTO;}
+break	{yylval.s = yytext; return BREAK;}	
+case	{yylval.s = yytext; return CASE;}
+char	{yylval.s = yytext; return CHAR;}
+const	{yylval.s = yytext; return CONST;}
+continue	{yylval.s = yytext; return CONTINUE;}
+default	{yylval.s = yytext; return DEFAULT;}
+do	{yylval.s = yytext; return DO;}
+double	{yylval.s = yytext; return DOUBLE;}
+else	{yylval.s = yytext; return ELSE;}
+enum	{yylval.s = yytext; return ENUM;}
+extern	{yylval.s = yytext; return EXTERN;}
+float	{yylval.s = yytext; return FLOAT;}
+for	{yylval.s = yytext; return FOR;}
+goto	{yylval.s = yytext; return GOTO;}
+if	{yylval.s = yytext; return IF;}
+inline	{yylval.s = yytext; return INLINE;}
+int	{yylval.s = yytext; return INT;}
+long	{yylval.s = yytext; return LONG;}
+register	{yylval.s = yytext; return REGISTER;}
+restrict	{yylval.s = yytext; return RESTRICT;}
+return	{yylval.s = yytext; return RETURN;}
+short	{yylval.s = yytext; return SHORT;}
 
 
 0[0-7]*{ILEN}?	{
-		yylval = yytext;
+		yylval.s = yytext;
 		return OCTNUMBER;
 		}
 [1-9][0-9]*{ILEN}?	{
-		yylval = yytext;
+		yylval.s = yytext;
 		return NUMBER;
 		}
 0[Xx][0-9a-fA-F]+{ILEN}?	{
-		yylval = yytext;
+		yylval.s = yytext;
 		return HEXNUMBER;
 		}
 [0-9]+{EXP}[flFL]?	{
-		yylval = yytext;
+		yylval.s = yytext;
 		return REAL;
 		}
-[~!%^&\*\(\)-\+\{\}\[\]:;<,>\.\?/]	{yylval=yytext;return *yytext;}
+[~!%^&\*\(\)-\+\{\}\[\]:;<,>\.\?/]	{yylval.s=yytext;return *yytext;}
 ([_a-zA-Z])([_a-zA-Z0-9])*	{
-		yylval = yytext;
+		yylval.s = yytext;
 		return IDENT;
 		}
 
 '	BEGIN(char_escape);
 	
-<char_escape>\\([0-7]{1,3})	{
-			int num = atoi(yytext+1);
-			if(num < 33 || num > 126){
-				printf("\\%d", num);
+<char_escape>\\([0-7]{1,4})	{
+			long int num = strtol(yytext+1, NULL, 8);
+			yylval.i = num;
+			BEGIN(WAIT_END);
 			}
-			else{
-				printf("\\%o", num);
+<char_escape>\\[abfnrtv]	{
+			int num = *(yytext+1);
+			switch(num){
+				case 97: yylval.i = 7;
+				case 98: yylval.i = 8;
+				case 102: yylval.i = 12;
+				case 110: yylval.i = 10;
+				case 114: yylval.i = 13;
+				case 116: yylval.i = 9;
+				case 118: yylval.i = 11;
 			}
-			yylval = yytext;
 			BEGIN(WAIT_END);
 			}
 <char_escape>[a-zA-Z0-9]	{
-			yylval = &buf[0];
-			buf[0] = *yytext;
+			yylval.i = *yytext;
 			BEGIN(WAIT_END);
 			}
 <WAIT_END>'	{
@@ -187,26 +196,31 @@ int t;
 	{
 		switch(t)
 		{
-			case NUMBER: my_atoi(yylval, 10);
+			case NUMBER: my_atoi(yylval.s, 10);
 					break;
-			case OCTNUMBER: my_atoi(yylval, 8);
+			case OCTNUMBER: my_atoi(yylval.s, 8);
 					break;
-			case HEXNUMBER: my_atoi(yylval, 16);
+			case HEXNUMBER: my_atoi(yylval.s, 16);
 					break;
-			case IDENT: printf("IDENT\t%s\n", yylval);
+			case IDENT: printf("IDENT\t%s\n", yylval.s);
 					break;
-			case REAL: realnum_parser(yylval);
+			case REAL: realnum_parser(yylval.s);
 					break;
-			case CHARLIT: printf("%s\n", yylval);
+			case CHARLIT:	if(yylval.i > 32 && yylval.i < 127){
+						printf("%c\n", yylval.i);
+					}
+					else{
+						printf("\\%o", yylval.i);
+					}
 					break;
 			case PLUSPLUS: printf("PLUSPLUS\n");
 					break;
 			case MINUSMINUS: printf("MINUSMINUS\n");
 					break;
-			case NOVAL: printf("%s\n", yylval);
+			case NOVAL: printf("%s\n", yylval.s);
 					break;
 			default:
-				printf("%s\n", yylval);
+				printf("%s\n", yylval.s);
 		}
 	}
 	printf("EOF\n");

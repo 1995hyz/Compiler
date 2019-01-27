@@ -13,13 +13,16 @@ union YYLVAL{
 	long long int i;
 } yylval;
 char buf[1024];
+int counter;
 
 %}
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
 EXP ([Ee][-+]?[0-9]+)
 
-%x char_escape
+%x CHAR_ESCAPE
+%x STRING_ESCAPE
 %x WAIT_END
+%x STRING_WAIT_END
 
 %%
 (\+\+)	{yylval.s = yytext; return PLUSPLUS;}
@@ -90,14 +93,23 @@ short	{yylval.s = yytext; return SHORT;}
 		return IDENT;
 		}
 
-'	BEGIN(char_escape);
+'	BEGIN(CHAR_ESCAPE);
+\"		{
+		int i = 0;
+		while(i <= counter){	//Cleaning Global Virables
+			buf[i] = '\0';
+			i++;
+		}
+		counter = 0;
+		BEGIN(STRING_ESCAPE);
+		}
 	
-<char_escape>\\[0-7]{1,3}	{
+<CHAR_ESCAPE>\\[0-7]{1,3}	{
 			long int num = strtol(yytext+1, NULL, 8);
 			yylval.i = num;
 			BEGIN(WAIT_END);
 			}
-<char_escape>\\[abfnrtv\\'"\?]	{
+<CHAR_ESCAPE>\\[abfnrtv\\'"\?]	{
 			int num = *(yytext+1);
 			switch(num){
 				case 97: yylval.i = 7;
@@ -118,15 +130,58 @@ short	{yylval.s = yytext; return SHORT;}
 			}
 			BEGIN(WAIT_END);
 			}
-<char_escape>\\x[0-9a-f]{1,2}	{
+<CHAR_ESCAPE>\\x[0-9a-f]{1,2}	{
 			long int num = strtol(yytext+2, NULL, 16);
 			yylval.i = num;
 			BEGIN(WAIT_END);
 			}
-<char_escape>[a-zA-Z0-9]	{
+<CHAR_ESCAPE>[#-&\(->@-\[\]-~]	{
 			yylval.i = *yytext;
 			BEGIN(WAIT_END);
 			}
+<STRING_ESCAPE>[#-&\(->@-\[\]-~]	{
+		if(counter < 1024){
+			yylval.s = &buf[0];
+			buf[counter] = *yytext;
+			counter++;
+		}
+		else{
+			fprintf(stderr, "ERROR: String length is greater than buffer.\n");
+			BEGIN(STRING_WAIT_END);
+		}	
+		}
+<STRING_ESCAPE>\\[abfnrtv\\'"\?]	{
+		if(counter < 1024){
+			int num = *(yytext+1);
+			switch(num){
+				case 97: buf[counter] = 7;
+					break;
+				case 98: buf[counter] = 8;
+					break;
+				case 102: buf[counter] = 12;
+					break;
+				case 110: buf[counter] = 10;
+					break;
+				case 114: buf[counter] = 13;
+					break;
+				case 116: buf[counter] = 9;
+					break;
+				case 118: buf[counter] = 11;
+					break;
+				default: buf[counter] = num;
+ 			}
+			counter++;
+			yylval.s = &buf[0];
+		}
+		else{
+			fprintf(stderr, "ERROR: String length is greater than buffer.\n");
+			BEGIN(STRING_WAIT_END);
+		}
+		}
+<STRING_ESCAPE>\"	{
+			BEGIN(INITIAL);
+			return STRING;
+		}	
 <WAIT_END>'	{
 		BEGIN(INITIAL);
 		return CHARLIT;
@@ -135,6 +190,13 @@ short	{yylval.s = yytext; return SHORT;}
 		//fprintf(stderr, "Warning: Unsupported multibyte character literal truncated to first byte\n");
 		;
 		}
+<STRING_WAIT_END>\"	{
+		BEGIN(INITIAL);
+		return STRING;
+	}
+<STRING_WAIT_END>.	{
+		;
+	}
 
  .	{fprintf(stderr, "Error: unknown token %s\n", yytext);}
 
@@ -254,6 +316,8 @@ int t;
 			case PLUSPLUS: printf("PLUSPLUS\n");
 					break;
 			case MINUSMINUS: printf("MINUSMINUS\n");
+					break;
+			case STRING: printf("%s\n", yylval.s);
 					break;
 			case NOVAL: printf("%s\n", yylval.s);
 					break;

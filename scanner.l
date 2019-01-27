@@ -92,22 +92,35 @@ short	{yylval.s = yytext; return SHORT;}
 
 '	BEGIN(char_escape);
 	
-<char_escape>\\([0-7]{1,4})	{
+<char_escape>\\[0-7]{1,3}	{
 			long int num = strtol(yytext+1, NULL, 8);
 			yylval.i = num;
 			BEGIN(WAIT_END);
 			}
-<char_escape>\\[abfnrtv]	{
+<char_escape>\\[abfnrtv\\'"\?]	{
 			int num = *(yytext+1);
 			switch(num){
 				case 97: yylval.i = 7;
+					break;
 				case 98: yylval.i = 8;
+					break;
 				case 102: yylval.i = 12;
+					break;
 				case 110: yylval.i = 10;
+					break;
 				case 114: yylval.i = 13;
+					break;
 				case 116: yylval.i = 9;
+					break;
 				case 118: yylval.i = 11;
+					break;
+				default: yylval.i = num;
 			}
+			BEGIN(WAIT_END);
+			}
+<char_escape>\\x[0-9a-f]{1,2}	{
+			long int num = strtol(yytext+2, NULL, 16);
+			yylval.i = num;
 			BEGIN(WAIT_END);
 			}
 <char_escape>[a-zA-Z0-9]	{
@@ -206,11 +219,36 @@ int t;
 					break;
 			case REAL: realnum_parser(yylval.s);
 					break;
-			case CHARLIT:	if(yylval.i > 32 && yylval.i < 127){
+			case CHARLIT:	if(yylval.i > 32 && yylval.i < 127 && yylval.i != 34 && yylval.i != 39 &&
+					yylval.i != 63 && yylval.i != 92){
 						printf("%c\n", yylval.i);
 					}
 					else{
-						printf("\\%o", yylval.i);
+						switch(yylval.i){
+							case 7: printf("\\a\n");
+								break;
+							case 8: printf("\\b\n");
+								break;
+							case 12: printf("\\f\n");
+								break;
+							case 10: printf("\\n\n");
+								break;
+							case 13: printf("\\r\n");
+								break;
+							case 9: printf("\\t\n");
+								break;
+							case 11: printf("\\v\n");
+								break;
+							case 92: printf("\\\\\n");
+								break;
+							case 39: printf("\\\'\n");
+								break;
+							case 34: printf("\\\"\n");
+								break;
+							case 63: printf("\\?\n");
+								break;
+							default: printf("\\%o\n", yylval.i);
+						}
 					}
 					break;
 			case PLUSPLUS: printf("PLUSPLUS\n");

@@ -131,7 +131,7 @@ short	{yylval.s = yytext; return SHORT;}
 			}
 			BEGIN(WAIT_END);
 			}
-<CHAR_ESCAPE>\\x[0-9a-f]{1,2}	{
+<CHAR_ESCAPE>\\x[0-9a-fA-F]{1,2}	{
 			long int num = strtol(yytext+2, NULL, 16);
 			yylval.i = num;
 			BEGIN(WAIT_END);
@@ -151,7 +151,7 @@ short	{yylval.s = yytext; return SHORT;}
 			BEGIN(STRING_WAIT_END);
 		}	
 		}
-<STRING_ESCAPE>\\x[0-9a-f]{1,2}	{
+<STRING_ESCAPE>\\x[0-9a-fA-F]{1,2}	{
 		if(counter<1024){
 			//yylval.s = &buf[0]
 			long int num = strtol(yytext+2, NULL, 16);
@@ -159,8 +159,8 @@ short	{yylval.s = yytext; return SHORT;}
 			counter++;
 		}
 		else{
-
-		
+			fprintf(stderr, "ERROR: String length is greater than buffer.\n");
+			BEGIN(STRING_WAIT_END);
 		}
 		}
 <STRING_ESCAPE>\\[abfnrtv\\'"\?]	{
@@ -191,6 +191,19 @@ short	{yylval.s = yytext; return SHORT;}
 			BEGIN(STRING_WAIT_END);
 		}
 		}
+<STRING_ESCAPE>\\[0-7]{1,3}	{
+		if(counter<1024){
+			//yylval.s = &buf[0]
+			long int num = strtol(yytext+1, NULL, 8);
+			buf[counter] = num;
+			counter++;
+		}
+		else{
+			fprintf(stderr, "ERROR: String length is greater than buffer.\n");
+			BEGIN(STRING_WAIT_END);
+		}
+		}
+
 <STRING_ESCAPE>\"	{
 			BEGIN(INITIAL);
 			return STRING;
@@ -284,6 +297,8 @@ char_printer(char current_char){
 	}
 	else{
 		switch(current_char){
+			case 0: printf("\\0");
+				break;
 			case 7: printf("\\a");
 				break;
 			case 8: printf("\\b");
@@ -304,9 +319,18 @@ char_printer(char current_char){
 				break;
 			case 34: printf("\\\"");
 				break;
-			case 63: printf("\\?");
+			case 63: printf("\?");
 				break;
-			default: printf("\\%o", current_char);
+			default: {
+				if(current_char >= 0){
+					printf("\\%03o", current_char);
+				}
+				else{
+					int i = current_char;
+					i += 256;
+					printf("\\%03o", i);
+				}
+			}
 		}
 	}
 }
@@ -338,11 +362,22 @@ int t;
 					break;
 			case MINUSMINUS: printf("MINUSMINUS\n");
 					break;
-			case STRING: { 
-					char current_char = '\0';
-					while(current_char=*yylval.s){
-						char_printer(current_char);
-						yylval.s++;
+			case AUTO: printf("AUTO\n");
+					break;
+			case BREAK: printf("BREAK\n");
+					break;
+			case CASE: printf("CASE\n");
+					break;
+			case CHAR: printf("CHAR\n");
+					break;
+			case CONST: printf("CONST\n");
+					break;
+			case STRING: { 	printf("STRING\t");
+					//char current_char = '\0';
+					int i = 0;
+					while(i<counter){
+						char_printer(*(yylval.s+i));
+						i++;
 					}
 					printf("\n");
 					break;

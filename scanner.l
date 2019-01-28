@@ -69,6 +69,20 @@ register	{yylval.s = yytext; return REGISTER;}
 restrict	{yylval.s = yytext; return RESTRICT;}
 return	{yylval.s = yytext; return RETURN;}
 short	{yylval.s = yytext; return SHORT;}
+signed	{yylval.s = yytext; return SIGNED;}
+sizeof	{yylval.s = yytext; return SIZEOF;}
+static	{yylval.s = yytext; return STATIC;}
+struct	{yylval.s = yytext; return STRUCT;}
+switch	{yylval.s = yytext; return SWITCH;}
+typedef	{yylval.s = yytext; return TYPEDEF;}
+union	{yylval.s = yytext; return UNION;}
+unsigned	{yylval.s = yytext; return UNSIGNED;}
+void	{yylval.s = yytext; return VOID;}
+volatile	{yylval.s = yytext; return VOLATILE;}
+while	{yylval.s = yytext; return WHILE;}
+_bool	{yylval.s = yytext; return _BOOL;}
+_complex	{yylval.s = yytext; return _COMPLEX;}
+_imaginary	{yylval.s = yytext; return _IMAGINARY;}
 
 
 0[0-7]*{ILEN}?	{
@@ -358,19 +372,67 @@ int t;
 					printf("\n");
 					break;
 			}
-			case PLUSPLUS: printf("PLUSPLUS\n");
+			case PLUSPLUS: printf("PLUSPLUS");
 					break;
-			case MINUSMINUS: printf("MINUSMINUS\n");
+			case MINUSMINUS: printf("MINUSMINUS");
 					break;
-			case AUTO: printf("AUTO\n");
+			case AUTO: printf("AUTO");
 					break;
-			case BREAK: printf("BREAK\n");
+			case BREAK: printf("BREAK");
 					break;
-			case CASE: printf("CASE\n");
+			case CASE: printf("CASE");
 					break;
-			case CHAR: printf("CHAR\n");
+			case CHAR: printf("CHAR");
 					break;
-			case CONST: printf("CONST\n");
+			case CONST: printf("CONST");
+					break;
+			case CONTINUE: printf("CONTINUE");
+					break;
+			case DEFAULT: printf("DEFAULT");
+					break;
+			case DO: printf("DO");
+					break;
+			case DOUBLE: printf("DOUBLE");
+					break;
+			case ELSE: printf("ELSE");
+					break;
+			case ENUM: printf("ENUM");
+					break;
+			case EXTERN: printf("EXTERN");
+					break;
+			case FLOAT: printf("FLOAT");
+					break;
+			case FOR: printf("FOR");
+					break;
+			case GOTO: printf("GOTO");
+					break;
+			case IF: printf("IF");
+					break;
+			case INLINE: printf("INLINE");
+					break;
+			case INT: printf("INT");
+					break;
+			case LONG: printf("LONG");
+					break;
+			case REGISTER: printf("REGISTER");
+					break;
+			case RESTRICT: printf("RESTRICT");
+					break;
+			case RETURN: printf("RETURN");
+					break;
+			case SHORT: printf("SHORT");
+					break;
+			case SIGNED: printf("SIGNED");
+					break;
+			case SIZEOF: printf("SIZEOF");
+					break;
+			case STATIC: printf("STATIC");
+					break;
+			case STRUCT: printf("SWITCH");
+					break;
+			case TYPEDEF: printf("TYPEDEF");
+					break;
+			case UNION: printf("UNION");
 					break;
 			case STRING: { 	printf("STRING\t");
 					//char current_char = '\0';

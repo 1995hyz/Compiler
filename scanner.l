@@ -101,6 +101,7 @@ short	{yylval.s = yytext; return SHORT;}
 			i++;
 		}
 		counter = 0;
+		yylval.s = &buf[0];
 		BEGIN(STRING_ESCAPE);
 		}
 	
@@ -141,7 +142,7 @@ short	{yylval.s = yytext; return SHORT;}
 			}
 <STRING_ESCAPE>[#-&\(->@-\[\]-~]	{
 		if(counter < 1024){
-			yylval.s = &buf[0];
+			//yylval.s = &buf[0];
 			buf[counter] = *yytext;
 			counter++;
 		}
@@ -149,6 +150,18 @@ short	{yylval.s = yytext; return SHORT;}
 			fprintf(stderr, "ERROR: String length is greater than buffer.\n");
 			BEGIN(STRING_WAIT_END);
 		}	
+		}
+<STRING_ESCAPE>\\x[0-9a-f]{1,2}	{
+		if(counter<1024){
+			//yylval.s = &buf[0]
+			long int num = strtol(yytext+2, NULL, 16);
+			buf[counter] = num;
+			counter++;
+		}
+		else{
+
+		
+		}
 		}
 <STRING_ESCAPE>\\[abfnrtv\\'"\?]	{
 		if(counter < 1024){
@@ -264,6 +277,40 @@ realnum_parser(char* string_value){
 	}
 }
 
+char_printer(char current_char){
+	if(current_char > 32 && current_char < 127 && current_char != 34 && current_char != 39 &&
+	current_char != 63 && current_char != 92){
+		printf("%c", current_char);
+	}
+	else{
+		switch(current_char){
+			case 7: printf("\\a");
+				break;
+			case 8: printf("\\b");
+				break;
+			case 12: printf("\\f");
+				break;
+			case 10: printf("\\n");
+				break;
+			case 13: printf("\\r");
+				break;
+			case 9: printf("\\t");
+				break;
+			case 11: printf("\\v");
+				break;
+			case 92: printf("\\\\");
+				break;
+			case 39: printf("\\\'");
+				break;
+			case 34: printf("\\\"");
+				break;
+			case 63: printf("\\?");
+				break;
+			default: printf("\\%o", current_char);
+		}
+	}
+}
+
 main()
 {
 int t;
@@ -281,44 +328,25 @@ int t;
 					break;
 			case REAL: realnum_parser(yylval.s);
 					break;
-			case CHARLIT:	if(yylval.i > 32 && yylval.i < 127 && yylval.i != 34 && yylval.i != 39 &&
-					yylval.i != 63 && yylval.i != 92){
-						printf("%c\n", yylval.i);
-					}
-					else{
-						switch(yylval.i){
-							case 7: printf("\\a\n");
-								break;
-							case 8: printf("\\b\n");
-								break;
-							case 12: printf("\\f\n");
-								break;
-							case 10: printf("\\n\n");
-								break;
-							case 13: printf("\\r\n");
-								break;
-							case 9: printf("\\t\n");
-								break;
-							case 11: printf("\\v\n");
-								break;
-							case 92: printf("\\\\\n");
-								break;
-							case 39: printf("\\\'\n");
-								break;
-							case 34: printf("\\\"\n");
-								break;
-							case 63: printf("\\?\n");
-								break;
-							default: printf("\\%o\n", yylval.i);
-						}
-					}
+			case CHARLIT: {
+					char current_char = yylval.i;
+					char_printer(current_char);
+					printf("\n");
 					break;
+			}
 			case PLUSPLUS: printf("PLUSPLUS\n");
 					break;
 			case MINUSMINUS: printf("MINUSMINUS\n");
 					break;
-			case STRING: printf("%s\n", yylval.s);
+			case STRING: { 
+					char current_char = '\0';
+					while(current_char=*yylval.s){
+						char_printer(current_char);
+						yylval.s++;
+					}
+					printf("\n");
 					break;
+			}
 			case NOVAL: printf("%s\n", yylval.s);
 					break;
 			default:

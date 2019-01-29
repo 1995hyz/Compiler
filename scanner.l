@@ -14,6 +14,8 @@ union YYLVAL{
 } yylval;
 char buf[1024];
 int counter;
+long long int line_num;
+char file_name[1024];
 
 %}
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
@@ -118,6 +120,16 @@ _imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		counter = 0;
 		yylval.s = &buf[0];
 		BEGIN(STRING_ESCAPE);
+		}
+
+#\ [0-9]+\ \"[\ -\.0-~]+\"	{
+		char *token;
+		token = strtok(yytext, " ");
+		token = strtok(NULL, " " );
+		line_num = strtoll(token, NULL, 10);
+		token = strtok(NULL, " ");
+		strcpy(file_name, token);
+		printf("%s\n", &buf[0]);
 		}
 	
 <CHAR_ESCAPE>\\[0-7]{1,3}	{

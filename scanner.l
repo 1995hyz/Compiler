@@ -25,6 +25,7 @@ EXP ([Ee][-+]?[0-9]+)
 %x STRING_WAIT_END
 
 %%
+(->)	{yylval.s = yytext; return INDSEL;}
 (\+\+)	{yylval.s = yytext; return PLUSPLUS;}
 (--)	{yylval.s = yytext; return MINUSMINUS;}
 (<<)	{yylval.s = yytext; return SHL;}
@@ -101,7 +102,7 @@ _imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		yylval.s = yytext;
 		return REAL;
 		}
-[~!%^&\*\(\)-\+\{\}\[\]:;<,>\.\?/]	{yylval.s=yytext;return *yytext;}
+[~!%^&\*\(\)\-\+\{\}\[\]:;<,>\.\?/\|]	{yylval.s=yytext;return *yytext;}
 ([_a-zA-Z])([_a-zA-Z0-9])*	{
 		yylval.s = yytext;
 		return IDENT;
@@ -372,9 +373,49 @@ int t;
 					printf("\n");
 					break;
 			}
+			case INDSEL: printf("INDSEL");
+					break;
 			case PLUSPLUS: printf("PLUSPLUS");
 					break;
 			case MINUSMINUS: printf("MINUSMINUS");
+					break;
+			case SHL: printf("SHL");
+					break;
+			case SHR: printf("SHR");
+					break;
+			case LTEQ: printf("LTEQ");	
+					break;
+			case GTEQ: printf("GTEQ");
+					break;
+			case EQEQ: printf("EQEQ");
+					break;
+			case NOTEQ: printf("NOTEQ");
+					break;
+			case LOGAND: printf("LOGAND");
+					break;
+			case LOGOR: printf("LOGOR");
+					break;
+			case ELLIPSIS: printf("ELLIPSIS");
+					break;
+			case TIMESEQ: printf("TIMESEQ");
+					break;
+			case DIVEQ: printf("DIVEQ");
+					break;
+			case MODEQ: printf("MODEQ");
+					break;
+			case PLUSEQ: printf("PLUSEQ");
+					break;
+			case MINUSEQ: printf("MINUSEQ");
+					break;
+			case SHLEQ: printf("SHLEQ");
+					break;
+			case SHREQ: printf("SHREQ");
+					break;
+			case ANDEQ: printf("ANDEQ");
+					break;
+			case OREQ: printf("OREQ");
+					break;
+			case XOREQ: printf("XOREQ");
 					break;
 			case AUTO: printf("AUTO");
 					break;
@@ -433,6 +474,20 @@ int t;
 			case TYPEDEF: printf("TYPEDEF");
 					break;
 			case UNION: printf("UNION");
+					break;
+			case UNSIGNED: printf("UNSIGNED");
+					break;
+			case VOID: printf("VOID");
+					break;
+			case VOLATILE: printf("VOLATILE");
+					break;
+			case WHILE: printf("WHILE");
+					break;
+			case _BOOL: printf("_BOOL");
+					break;
+			case _COMPLEX: printf("_COMPLEX");
+					break;
+			case _IMAGINARY: printf("_IMAGINARY");
 					break;
 			case STRING: { 	printf("STRING\t");
 					//char current_char = '\0';

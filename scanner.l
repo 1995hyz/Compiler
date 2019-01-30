@@ -3,10 +3,11 @@
 #include "tokens-manual.h"
 #include <stdlib.h>
 #include <string.h>
-#define NOVAL 4040
+#define SKIP 4040
 #define OCTNUMBER 4041
 #define HEXNUMBER 4042
 #define REAL 4043
+#define PUNC 4044
 
 union YYLVAL{
 	char* s;
@@ -83,9 +84,9 @@ unsigned	{yylval.s = yytext; return UNSIGNED;}
 void	{yylval.s = yytext; return VOID;}
 volatile	{yylval.s = yytext; return VOLATILE;}
 while	{yylval.s = yytext; return WHILE;}
-_bool	{yylval.s = yytext; return _BOOL;}
-_complex	{yylval.s = yytext; return _COMPLEX;}
-_imaginary	{yylval.s = yytext; return _IMAGINARY;}
+_Bool	{yylval.s = yytext; return _BOOL;}
+_Complex	{yylval.s = yytext; return _COMPLEX;}
+_Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 
 
 0[0-7]*{ILEN}?	{
@@ -104,7 +105,7 @@ _imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		yylval.s = yytext;
 		return REAL;
 		}
-[~!%^&\*\(\)\-\+\{\}\[\]:;<,>\.\?/\|]	{yylval.s=yytext;return *yytext;}
+[~!%^&\*\(\)\-\+\{\}\[\]:;<,>\.\?/\|]	{yylval.s=yytext;return PUNC;}
 ([_a-zA-Z])([_a-zA-Z0-9])*	{
 		yylval.s = yytext;
 		return IDENT;
@@ -122,16 +123,14 @@ _imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		BEGIN(STRING_ESCAPE);
 		}
 
-#\ [0-9]+\ \"[\ -\.0-~]+\"	{
+#\ [0-9]+\ \"[\ -~]+\".*$	{
 		char *token;
 		token = strtok(yytext, " ");
-		token = strtok(NULL, " " );
-		line_num = strtoll(token, NULL, 10);
+		token = strtok(NULL, " ");
+		line_num = strtoll(token, NULL, 10) - 1;
 		token = strtok(NULL, " ");
 		strcpy(file_name, token);
-		printf("%s\n", &buf[0]);
 		}
-	
 <CHAR_ESCAPE>\\[0-7]{1,3}	{
 			long int num = strtol(yytext+1, NULL, 8);
 			yylval.i = num;
@@ -240,7 +239,6 @@ _imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		return CHARLIT;
 		}
 <WAIT_END>.	{
-		//fprintf(stderr, "Warning: Unsupported multibyte character literal truncated to first byte\n");
 		;
 		}
 <STRING_WAIT_END>\"	{
@@ -250,6 +248,8 @@ _imaginary	{yylval.s = yytext; return _IMAGINARY;}
 <STRING_WAIT_END>.	{
 		;
 	}
+
+\n	{line_num++; return SKIP;}
 
  .	{fprintf(stderr, "Error: unknown token %s\n", yytext);}
 
@@ -367,6 +367,10 @@ main()
 int t;
 	while (t=yylex())
 	{
+		if(t != SKIP){
+			printf("%s\t%d\t", &file_name[0], line_num);
+		}
+		//printf("&&&&&&&&&&");
 		switch(t)
 		{
 			case NUMBER: my_atoi(yylval.s, 10);
@@ -375,14 +379,14 @@ int t;
 					break;
 			case HEXNUMBER: my_atoi(yylval.s, 16);
 					break;
-			case IDENT: printf("IDENT\t%s\n", yylval.s);
+			case IDENT: printf("IDENT\t%s", yylval.s);
 					break;
 			case REAL: realnum_parser(yylval.s);
 					break;
 			case CHARLIT: {
 					char current_char = yylval.i;
+					printf("CHARLIT\t");
 					char_printer(current_char);
-					printf("\n");
 					break;
 			}
 			case INDSEL: printf("INDSEL");
@@ -481,7 +485,9 @@ int t;
 					break;
 			case STATIC: printf("STATIC");
 					break;
-			case STRUCT: printf("SWITCH");
+			case STRUCT: printf("STRUCT");
+					break;
+			case SWITCH: printf("SWITCH");
 					break;
 			case TYPEDEF: printf("TYPEDEF");
 					break;
@@ -502,20 +508,21 @@ int t;
 			case _IMAGINARY: printf("_IMAGINARY");
 					break;
 			case STRING: { 	printf("STRING\t");
-					//char current_char = '\0';
 					int i = 0;
 					while(i<counter){
 						char_printer(*(yylval.s+i));
 						i++;
 					}
-					printf("\n");
 					break;
 			}
-			case NOVAL: printf("%s\n", yylval.s);
+			case SKIP: 	continue;
+			case PUNC: printf("%s", yylval.s);
 					break;
 			default:
-				printf("%s\n", yylval.s);
+				//printf("%s", yylval.s);
+				;
 		}
+		printf("\n");
 	}
 	printf("EOF\n");
 }

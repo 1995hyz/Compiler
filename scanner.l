@@ -21,6 +21,7 @@ char file_name[1024];
 %}
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
 EXP ([Ee][-+]?[0-9]+)
+POINT ([Pp][-+]?[0-9]+)
 
 %x CHAR_ESCAPE
 %x STRING_ESCAPE
@@ -105,6 +106,18 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		yylval.s = yytext;
 		return REAL;
 		}
+0[Xx][0-9a-fA-F]+{EXP}[flFL]?	{
+		yylval.s = yytext;
+		return REAL;
+}
+[0-9]+\.[0-9]*{flFL}?	{
+		yylval.s = yytext;
+		return REAL;
+}
+[0-9]+{POINT}{flFL}?	{
+		yylval.s = yytext;
+		return REAL;
+}
 [~!%^&\*\(\)\-\+\{\}\[\]:;<,>\.\?/\|]	{yylval.s=yytext;return PUNC;}
 ([_a-zA-Z])([_a-zA-Z0-9])*	{
 		yylval.s = yytext;
@@ -277,30 +290,30 @@ my_atoi(char* string_value, int base){
 	char num_type[4] = {'\0', '\0', '\0', '\0'};
 	to_upper(num_type, endptr);
 	if(num_type[0] == '\0'){
-		printf("NUMBER\tINTEGER\t%lld\tINT\n", i);
+		printf("NUMBER\tINTEGER\t%lld\tINT", i);
 	}
 	else if(strcmp(&num_type[0], "L") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tLONG\n", i);
+		printf("NUMBER\tINTEGER\t%lld\tLONG", i);
 	}	
 	else if(strcmp(&num_type[0], "U") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED INT\n", i);
+		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED INT", i);
 	}
 	else if(strcmp(&num_type[0], "LL") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tLONGLONG\n", i);
+		printf("NUMBER\tINTEGER\t%lld\tLONGLONG", i);
 	}
 	else if(strcmp(&num_type[0], "LU") == 0 || strcmp(&num_type[0], "UL") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED LONG\n", i); 
+		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED LONG", i); 
 	}
 	else if(strcmp(&num_type[0], "LLU") == 0 || strcmp(&num_type[0], "ULL") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED LONGLONG\n", i); 
+		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED LONGLONG", i); 
 	}
 	else{
-		printf("number\tinteger\t%lld\tint\n", i);
+		printf("NUMBER\tINTEGER\t%lld\tINT\n", i);
 	}
 }
 
 realnum_parser(char* string_value){
-	char* endptr;
+	/*char* endptr;
 	long long int i = strtoll(string_value, &endptr, 10);
 	int length = strlen(endptr);
 	char last_char = *(endptr + length - 1);
@@ -314,7 +327,8 @@ realnum_parser(char* string_value){
 	}
 	else{
 		printf("NUMBER\tREAL\t%ld%s\tDOUBLE\n", i, endptr);
-	}
+	}*/
+	printf("NUMBER\tREAL\t%s\n", yylval.s);
 }
 
 char_printer(char current_char){

@@ -21,7 +21,10 @@ char file_name[1024];
 %}
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
 EXP ([Ee][-+]?[0-9]+)
-POINT ([Pp][-+]?[0-9]+)
+BEXP ([Pp][-+]?[0-9]+)
+FLOATING_PREFIX [fFlL]
+DIGIT_SEQ [0-9]
+HEX_DIGIT_SEQ (0[Xx][0-9a-fA-F]+)
 
 %x CHAR_ESCAPE
 %x STRING_ESCAPE
@@ -102,22 +105,23 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		yylval.s = yytext;
 		return HEXNUMBER;
 		}
-[0-9]+{EXP}[flFL]?	{
+	{	//Decimal Floating Constant
 		yylval.s = yytext;
 		return REAL;
 		}
-0[Xx][0-9a-fA-F]+{EXP}[flFL]?	{
+[0-9]*.[0-9]+[flFL]?	{	//Fractional Constant
 		yylval.s = yytext;
 		return REAL;
-}
-[0-9]+\.[0-9]*{flFL}?	{
+		}
+
+0[Xx][0-9a-fA-F]+{POINT}[flFL]?	{	//Hexdecimal Floating Constant
 		yylval.s = yytext;
 		return REAL;
-}
-[0-9]+{POINT}{flFL}?	{
+		}
+0[Xx][0-9a-fA-F]+\.(0[Xx][0-9a-fA-F])*	{	//Hexdecimal Fractional Constant
 		yylval.s = yytext;
 		return REAL;
-}
+		}
 [~!%^&\*\(\)\-\+\{\}\[\]:;<,>\.\?/\|]	{yylval.s=yytext;return PUNC;}
 ([_a-zA-Z])([_a-zA-Z0-9])*	{
 		yylval.s = yytext;
@@ -181,7 +185,6 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 			}
 <STRING_ESCAPE>[#-&\(->@-\[\]-~]	{
 		if(counter < 1024){
-			//yylval.s = &buf[0];
 			buf[counter] = *yytext;
 			counter++;
 		}
@@ -190,10 +193,13 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 			BEGIN(STRING_WAIT_END);
 		}	
 		}
-<STRING_ESCAPE>\\x[0-9a-fA-F]{1,2}	{
+<STRING_ESCAPE>\\x[0-9a-fA-F]+	{
 		if(counter<1024){
-			//yylval.s = &buf[0]
-			long int num = strtol(yytext+2, NULL, 16);
+			long long int num = strtoll(yytext+2, NULL, 16);
+			if(num > 255){
+				fprintf(stderr, "%s:%lld:Warning: Hex escape sequence out of range\n", &file_name[0], line_num);
+				num = 255;
+			}
 			buf[counter] = num;
 			counter++;
 		}
@@ -252,10 +258,14 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		return CHARLIT;
 		}
 <WAIT_END>.	{
-		;
+		if(counter == 0){
+			fprintf(stderr, "%s:%lld:Warning:Unsupported multibyte character literal truncated to first byte\n", &file_name[0], line_num);
+			counter++;
+		}
 		}
 <STRING_WAIT_END>\"	{
 		BEGIN(INITIAL);
+		counter = 0;
 		return STRING;
 	}
 <STRING_WAIT_END>.	{
@@ -268,7 +278,7 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 
 %%
 
-to_upper(char* dest, char* src){
+void to_upper(char* dest, char* src){
 	char* addr = NULL;
 	while(*src != '\0'){
 		char upper;
@@ -284,7 +294,7 @@ to_upper(char* dest, char* src){
 	}
 }
 
-my_atoi(char* string_value, int base){
+void my_atoi(char* string_value, int base){
 	char* endptr;
 	long long int i = strtoll(string_value, &endptr, base);
 	char num_type[4] = {'\0', '\0', '\0', '\0'};
@@ -308,11 +318,11 @@ my_atoi(char* string_value, int base){
 		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED LONGLONG", i); 
 	}
 	else{
-		printf("NUMBER\tINTEGER\t%lld\tINT\n", i);
+		printf("NUMBER\tINTEGER\t%lld\tINT", i);
 	}
 }
 
-realnum_parser(char* string_value){
+void realnum_parser(char* string_value){
 	/*char* endptr;
 	long long int i = strtoll(string_value, &endptr, 10);
 	int length = strlen(endptr);
@@ -328,10 +338,10 @@ realnum_parser(char* string_value){
 	else{
 		printf("NUMBER\tREAL\t%ld%s\tDOUBLE\n", i, endptr);
 	}*/
-	printf("NUMBER\tREAL\t%s\n", yylval.s);
+	printf("NUMBER\tREAL\t%s", yylval.s);
 }
 
-char_printer(char current_char){
+void char_printer(char current_char){
 	if(current_char > 32 && current_char < 127 && current_char != 34 && current_char != 39 &&
 	current_char != 63 && current_char != 92){
 		printf("%c", current_char);
@@ -376,15 +386,14 @@ char_printer(char current_char){
 	}
 }
 
-main()
+void main()
 {
 int t;
 	while (t=yylex())
 	{
 		if(t != SKIP){
-			printf("%s\t%d\t", &file_name[0], line_num);
+			printf("%s\t%lld\t", &file_name[0], line_num);
 		}
-		//printf("&&&&&&&&&&");
 		switch(t)
 		{
 			case NUMBER: my_atoi(yylval.s, 10);
@@ -537,6 +546,7 @@ int t;
 				;
 		}
 		printf("\n");
+		counter = 0;
 	}
 	printf("EOF\n");
 }

@@ -545,7 +545,6 @@ int t;
 			case PUNC: printf("%s", yylval.s);
 					break;
 			default:
-				//printf("%s", yylval.s);
 				;
 		}
 		printf("\n");

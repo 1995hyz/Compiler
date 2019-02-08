@@ -22,9 +22,9 @@ char file_name[1024];
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
 EXP ([Ee][-+]?[0-9]+)
 BEXP ([Pp][-+]?[0-9]+)
-FLOATING_PREFIX [fFlL]
-DIGIT_SEQ [0-9]
-HEX_DIGIT_SEQ (0[Xx][0-9a-fA-F]+)
+FLOATING_PREFIX ([fFlL])
+DIGIT_SEQ ([0-9]+)
+HEX_DIGIT_SEQ ([0-9a-fA-F]+)
 
 %x CHAR_ESCAPE
 %x STRING_ESCAPE
@@ -105,23 +105,26 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		yylval.s = yytext;
 		return HEXNUMBER;
 		}
-	{	//Decimal Floating Constant
+({DIGIT_SEQ}?\.{DIGIT_SEQ})|({DIGIT_SEQ}\.){EXP}?{FLOATING_PREFIX}?	{
+		//Decimal Floating Constant 1
 		yylval.s = yytext;
 		return REAL;
-		}
-[0-9]*.[0-9]+[flFL]?	{	//Fractional Constant
+	}
+{DIGIT_SEQ}{EXP}{FLOATING_PREFIX}?	{
+		//Decimal Floating Constant 2
 		yylval.s = yytext;
 		return REAL;
-		}
-
-0[Xx][0-9a-fA-F]+{POINT}[flFL]?	{	//Hexdecimal Floating Constant
+}
+0[Xx]((({HEX_DIGIT_SEQ}?\.{HEX_DIGIT_SEQ})|({HEX_DIGIT_SEQ}\.))|({HEX_DIGIT_SEQ})){BEXP}{FLOATING_PREFIX}?	{
+		//Hexdecimal Floating Constant
 		yylval.s = yytext;
 		return REAL;
-		}
-0[Xx][0-9a-fA-F]+\.(0[Xx][0-9a-fA-F])*	{	//Hexdecimal Fractional Constant
+	}
+({HEX_DIGIT_SEQ}?\.{HEX_DIGIT_SEQ})|({HEX_DIGIT_SEQ}\.)	{
+		//Hexdecimal Fractional Constant
 		yylval.s = yytext;
 		return REAL;
-		}
+	}
 [~!%^&\*\(\)\-\+\{\}\[\]:;<,>\.\?/\|]	{yylval.s=yytext;return PUNC;}
 ([_a-zA-Z])([_a-zA-Z0-9])*	{
 		yylval.s = yytext;

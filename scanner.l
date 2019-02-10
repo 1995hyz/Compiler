@@ -4,10 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define SKIP 4040
-#define OCTNUMBER 4041
-#define HEXNUMBER 4042
 #define REAL 4043
-#define PUNC 4044
 
 union YYLVAL{
 	char* s;
@@ -95,16 +92,16 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 
 
 0[0-7]*{ILEN}?	{
-		yylval.i = strtoll(yytext, num_type, 8);
+		yylval.i = strtoll(yytext, &num_type, 8);
 		return NUMBER;
 		}
 [1-9][0-9]*{ILEN}?	{
-		yylval.s = yytext;
+		yylval.i = strtoll(yytext, &num_type, 10);
 		return NUMBER;
 		}
 0[Xx][0-9a-fA-F]+{ILEN}?	{
-		yylval.s = yytext;
-		return HEXNUMBER;
+		yylval.i = strtoll(yytext, &num_type, 16);
+		return NUMBER;
 		}
 ({DIGIT_SEQ}?\.{DIGIT_SEQ})|({DIGIT_SEQ}\.){EXP}?{FLOATING_PREFIX}?	{
 		//Decimal Floating Constant 1
@@ -321,31 +318,29 @@ void to_upper(char* dest, char* src){
 	}
 }
 
-void my_atoi(char* string_value, int base){
-	char* endptr;
-	long long int i = strtoll(string_value, &endptr, base);
+void my_atoi(char* endptr){
 	char num_type[4] = {'\0', '\0', '\0', '\0'};
 	to_upper(num_type, endptr);
 	if(num_type[0] == '\0'){
-		printf("NUMBER\tINTEGER\t%lld\tINT", i);
+		printf("INT");
 	}
 	else if(strcmp(&num_type[0], "L") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tLONG", i);
+		printf("LONG");
 	}	
 	else if(strcmp(&num_type[0], "U") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED INT", i);
+		printf("UNSIGNED INT");
 	}
 	else if(strcmp(&num_type[0], "LL") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tLONGLONG", i);
+		printf("LONGLONG");
 	}
 	else if(strcmp(&num_type[0], "LU") == 0 || strcmp(&num_type[0], "UL") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED LONG", i); 
+		printf("UNSIGNED LONG"); 
 	}
 	else if(strcmp(&num_type[0], "LLU") == 0 || strcmp(&num_type[0], "ULL") == 0){
-		printf("NUMBER\tINTEGER\t%lld\tUNSIGNED LONGLONG", i); 
+		printf("UNSIGNED LONGLONG"); 
 	}
 	else{
-		printf("NUMBER\tINTEGER\t%lld\tINT", i);
+		printf("INT");
 	}
 }
 
@@ -457,12 +452,11 @@ int t;
 					break;
 			case '<': printf("%c", yylval.i);
 					break;
-			case NUMBER: my_atoi(yylval.s, 10);
+			case NUMBER: {	
+					printf("NUMBER\tINTEGER\t%lld\t", yylval.i);
+					my_atoi(num_type);
 					break;
-			case OCTNUMBER: my_atoi(yylval.s, 8);
-					break;
-			case HEXNUMBER: my_atoi(yylval.s, 16);
-					break;
+			}
 			case IDENT: printf("IDENT\t%s", yylval.s);
 					break;
 			case REAL: realnum_parser(yylval.s);
@@ -600,8 +594,6 @@ int t;
 					break;
 			}
 			case SKIP: 	continue;
-			case PUNC: printf("%s", yylval.s);
-					break;
 			default:
 				;
 		}

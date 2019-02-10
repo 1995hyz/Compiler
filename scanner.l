@@ -17,6 +17,7 @@ char buf[1024];
 int counter;
 long long int line_num;
 char file_name[1024];
+char* num_type;
 
 %}
 ILEN ([Uu](L|l|LL|ll)?|(L|l|LL|ll)[Uu]?)
@@ -94,8 +95,8 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 
 
 0[0-7]*{ILEN}?	{
-		yylval.s = yytext;
-		return OCTNUMBER;
+		yylval.i = strtoll(yytext, num_type, 8);
+		return NUMBER;
 		}
 [1-9][0-9]*{ILEN}?	{
 		yylval.s = yytext;
@@ -125,7 +126,30 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		yylval.s = yytext;
 		return REAL;
 	}
-[~!%^&\*\(\)\-\+\{\}\[\]:;<,>\.\?/\|]	{yylval.s=yytext;return PUNC;}
+~	{yylval.i='~'; return '~';}
+!	{yylval.i='!'; return '!';}
+%	{yylval.i='%'; return '%';}
+\^	{yylval.i='^'; return '^';}
+&	{yylval.i='&'; return '&';}
+\*	{yylval.i='*'; return '*';}
+\(	{yylval.i='('; return '(';}
+\)	{yylval.i=')'; return ')';}
+\-	{yylval.i='-'; return '-';}
+\+	{yylval.i='+'; return '+';}
+\{	{yylval.i='{'; return '{';}
+\}	{yylval.i='}'; return '}';}
+\[	{yylval.i='['; return '[';}
+\]	{yylval.i=']'; return ']';}
+:	{yylval.i=':'; return ':';}
+;	{yylval.i=';'; return ';';}
+\<	{yylval.i='<'; return '<';}
+,	{yylval.i=','; return ',';}
+\>	{yylval.i='>'; return '>';}
+\.	{yylval.i='.'; return '.';}
+\?	{yylval.i='?'; return '?';}
+\/	{yylval.i='/'; return '/';}
+\|	{yylval.i='|'; return '|';}
+
 ([_a-zA-Z])([_a-zA-Z0-9])*	{
 		yylval.s = yytext;
 		return IDENT;
@@ -399,6 +423,40 @@ int t;
 		}
 		switch(t)
 		{
+			case '~': printf("%c", yylval.i);
+					break;
+			case '!': printf("%c", yylval.i);
+					break;
+			case '%': printf("%c", yylval.i);
+					break;
+			case '^': printf("%c", yylval.i);
+					break;
+			case '&': printf("%c", yylval.i);
+					break;
+			case '*': printf("%c", yylval.i);
+					break;
+			case '(': printf("%c", yylval.i);
+					break;
+			case ')': printf("%c", yylval.i);
+					break;
+			case '-': printf("%c", yylval.i);
+					break;
+			case '+': printf("%c", yylval.i);
+					break;
+			case '{': printf("%c", yylval.i);
+					break;
+			case '}': printf("%c", yylval.i);
+					break;
+			case '[': printf("%c", yylval.i);
+					break;
+			case ']': printf("%c", yylval.i);
+					break;
+			case ':': printf("%c", yylval.i);
+					break;
+			case ';': printf("%c", yylval.i);
+					break;
+			case '<': printf("%c", yylval.i);
+					break;
 			case NUMBER: my_atoi(yylval.s, 10);
 					break;
 			case OCTNUMBER: my_atoi(yylval.s, 8);

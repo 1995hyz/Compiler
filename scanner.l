@@ -180,19 +180,19 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 <CHAR_ESCAPE>\\[abfnrtv\\'"\?]	{
 			int num = *(yytext+1);
 			switch(num){
-				case 97: yylval.i = 7;
+				case 'a': yylval.i = '\a';
 					break;
-				case 98: yylval.i = 8;
+				case 'b': yylval.i = '\b';
 					break;
-				case 102: yylval.i = 12;
+				case 'f': yylval.i = '\f';
 					break;
-				case 110: yylval.i = 10;
+				case 'n': yylval.i = '\n';
 					break;
-				case 114: yylval.i = 13;
+				case 'r': yylval.i = '\r';
 					break;
-				case 116: yylval.i = 9;
+				case 't': yylval.i = '\t';
 					break;
-				case 118: yylval.i = 11;
+				case 'v': yylval.i = '\v';
 					break;
 				default: yylval.i = num;
 			}
@@ -236,19 +236,19 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		if(counter < 1024){
 			int num = *(yytext+1);
 			switch(num){
-				case 97: buf[counter] = 7;
+				case 'a': buf[counter] = '\a';
 					break;
-				case 98: buf[counter] = 8;
+				case 'b': buf[counter] = '\b';
 					break;
-				case 102: buf[counter] = 12;
+				case 'f': buf[counter] = '\f';
 					break;
-				case 110: buf[counter] = 10;
+				case 'n': buf[counter] = '\n';
 					break;
-				case 114: buf[counter] = 13;
+				case 'r': buf[counter] = '\r';
 					break;
-				case 116: buf[counter] = 9;
+				case 't': buf[counter] = '\t';
 					break;
-				case 118: buf[counter] = 11;
+				case 'v': buf[counter] = '\v';
 					break;
 				default: buf[counter] = num;
  			}
@@ -372,27 +372,27 @@ void char_printer(char current_char){
 		switch(current_char){
 			case 0: printf("\\0");
 				break;
-			case 7: printf("\\a");
+			case '\a': printf("\\a");
 				break;
-			case 8: printf("\\b");
+			case '\b': printf("\\b");
 				break;
-			case 12: printf("\\f");
+			case '\f': printf("\\f");
 				break;
-			case 10: printf("\\n");
+			case '\n': printf("\\n");
 				break;
-			case 13: printf("\\r");
+			case '\r': printf("\\r");
 				break;
-			case 9: printf("\\t");
+			case '\t': printf("\\t");
 				break;
-			case 11: printf("\\v");
+			case '\v': printf("\\v");
 				break;
-			case 92: printf("\\\\");
+			case '\\': printf("\\\\");
 				break;
-			case 39: printf("\\\'");
+			case '\'': printf("\\\'");
 				break;
-			case 34: printf("\\\"");
+			case '\"': printf("\\\"");
 				break;
-			case 63: printf("\?");
+			case '\?': printf("\?");
 				break;
 			default: {
 				if(current_char >= 0){
@@ -451,6 +451,18 @@ int t;
 			case ';': printf("%c", yylval.i);
 					break;
 			case '<': printf("%c", yylval.i);
+					break;
+			case ',': printf("%c", yylval.i);
+					break;
+			case '>': printf("%c", yylval.i);
+					break;
+			case '.': printf("%c", yylval.i);
+					break;
+			case '?': printf("%c", yylval.i);
+					break;
+			case '/': printf("%c", yylval.i);
+					break;
+			case '|': printf("%c", yylval.i);
 					break;
 			case NUMBER: {	
 					printf("NUMBER\tINTEGER\t%lld\t", yylval.i);

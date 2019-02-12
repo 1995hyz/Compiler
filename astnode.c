@@ -2,13 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-astptr astnode_alloc(int node_type){
-	switch (node_type){
-		case 1: {
-			u *new_node = malloc(9);
-			return &(new_node->astnode_binop);
-		} 
-
+struct astnode* astnode_alloc(int type){
+	struct astnode *new_node = malloc(sizeof(struct astnode));
+	if(!new_node){
+		fprintf(stderr, "out of space");
+		exit(1);
 	}
+	new_node -> node_type = type;
+}
 
+int main(){
+	return 0;	
 }

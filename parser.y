@@ -5,14 +5,18 @@
 %}
 
 %union {
-	struct astnode *astnode_p
+	struct astnode* astnode_p
 }
 
 %type <astnode_p> binary_expr
+%token <astnode_p> NUM
 
 %%
-binary_expr:
-	binary '+' binary_expr {
+binary_expr: NUM {
+		$$ = astnode_alloc(AST_num);
+		struct astnode_num *n = &($$->u.num);	
+	}
+	|binary_expr '+' NUM {
 		$$ = astnode_alloc(AST_binop);
 		struct astnode_binop *n = &($$->u.binop);
 		n->operator = '+';
@@ -20,3 +24,8 @@ binary_expr:
 		n->right = $3;
 	}
 %%
+
+int main(){
+	printf(">");
+	return yyparse();
+}

@@ -3,14 +3,11 @@
 #include <stdlib.h>
 
 struct astnode* astnode_alloc(int type){
-	struct astnode *new_node = malloc(sizeof(struct astnode));
+	struct astnode* new_node = malloc(sizeof(struct astnode));
 	if(!new_node){
 		fprintf(stderr, "out of space");
 		exit(1);
 	}
 	new_node -> node_type = type;
-}
-
-int main(){
-	return 0;	
+	return new_node;
 }

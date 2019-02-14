@@ -6,6 +6,7 @@
 #define AST_num 3
 #define AST_ident 4
 
+extern int yylineno;
 struct astnode;
 
 struct astnode_binop{

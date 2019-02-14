@@ -1,15 +1,19 @@
 %option noyywrap
 %{
-#include "tokens-manual.h"
+#include "parser.tab.h"
 #include <stdlib.h>
 #include <string.h>
 #define SKIP 4040
 #define REAL 4043
 
+#if 0
 union YYLVAL{
+
 	char* s;
 	long long int i;
 } yylval;
+#endif
+
 char buf[1024];
 int counter;
 long long int line_num;
@@ -168,7 +172,7 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		char *token;
 		token = strtok(yytext, " ");
 		token = strtok(NULL, " ");
-		line_num = strtoll(token, NULL, 10) - 1;
+		yylineno = strtoll(token, NULL, 10) - 1;
 		token = strtok(NULL, " ");
 		strcpy(file_name, token);
 		}
@@ -221,7 +225,7 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		if(counter<1024){
 			long long int num = strtoll(yytext+2, NULL, 16);
 			if(num > 255){
-				fprintf(stderr, "%s:%lld:Warning: Hex escape sequence out of range\n", &file_name[0], line_num);
+				fprintf(stderr, "%s:%lld:Warning: Hex escape sequence out of range\n", &file_name[0], yylineno);
 				num = 255;
 			}
 			buf[counter] = num;
@@ -283,7 +287,7 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		}
 <WAIT_END>.	{
 		if(counter == 0){
-			fprintf(stderr, "%s:%lld:Warning:Unsupported multibyte character literal truncated to first byte\n", &file_name[0], line_num);
+			fprintf(stderr, "%s:%lld:Warning:Unsupported multibyte character literal truncated to first byte\n", &file_name[0], yylineno);
 			counter++;
 		}
 		}
@@ -296,7 +300,7 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		;
 	}
 
-\n	{line_num++; return SKIP;}
+\n	{yylineno++; }
 
  .	{fprintf(stderr, "Error: unknown token %s\n", yytext);}
 
@@ -408,7 +412,7 @@ void char_printer(char current_char){
 	}
 }
 
-void main()
+/*void main()
 {
 int t;
 	while (t=yylex())
@@ -613,4 +617,4 @@ int t;
 		counter = 0;
 	}
 	printf("EOF\n");
-}
+}*/

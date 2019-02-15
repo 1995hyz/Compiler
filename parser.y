@@ -7,6 +7,7 @@
 %}
 
 %left '+'
+%left '-'
 %nonassoc '|'
 
 %union {
@@ -17,7 +18,7 @@
 
 %type <astnode_p> binary_expr
 %token <i> NUMBER
-%token 	IDENT
+%token <s> IDENT
 %token 	CHARLIT
 %token 	STRING
 %token 	INDSEL
@@ -79,16 +80,39 @@
 %token 	_BOOL
 %token 	_COMPLEX
 %token 	_IMAGINARY
+%token EOL
+
+%type <astnode_p> prime_expr;
 
 %%
-binary_expr: binary_expr '+' binary_expr {
+expr:	//Nothing
+	| expr binary_expr EOL {
+		print_tree($2, 0);
+		tree_free($2);
+	}
+prime_expr:	
+	IDENT {
+		$$ = astnode_alloc(AST_ident);
+		$$->u.name = $1;
+	}
+	| NUMBER {
+		$$ = astnode_alloc(AST_num);
+		struct astnode_num *n = &($$->u.num);
+		n->value = $1;
+	}
+	| '(' prime_expr ')' {
+		$$ = $2;
+	}
+	
+
+binary_expr: 	binary_expr '+' binary_expr {
 		$$ = astnode_alloc(AST_binop);
 		struct astnode_binop *n = &($$->u.binop);
 		n->operator = '+';
 		n->left = $1;
 		n->right = $3;
 	}
-	| NUMBER{
+	| NUMBER {
 		$$ = astnode_alloc(AST_num);
 		struct astnode_num *n = &($$->u.num);
 		n->value = $1;

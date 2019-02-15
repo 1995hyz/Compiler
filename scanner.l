@@ -300,7 +300,7 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		;
 	}
 
-\n	{yylineno++; }
+\n	{yylineno++; return EOL;}
 
  .	{fprintf(stderr, "Error: unknown token %s\n", yytext);}
 

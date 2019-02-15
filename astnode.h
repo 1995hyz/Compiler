@@ -26,7 +26,7 @@ struct astnode_num{
 };
 
 struct astnode_ident{
-	char name[1024];
+	char *name;
 };
 
 struct astnode {
@@ -40,5 +40,7 @@ struct astnode {
 };
 
 struct astnode* astnode_alloc(int node_type);
+void print_tree(struct astnode*, int indent);
+void tree_free(struct astnode*);
 
 #endif //_ASTNODE_H

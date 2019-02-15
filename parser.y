@@ -6,8 +6,14 @@
 //#define YYDEBUG 1
 %}
 
-%left '+'
-%left '-'
+
+%left ','
+%right '='
+%right '?' ':'
+%left '+' '-'
+%left '*' '/' '%'
+%left '(' ')'
+%left '[' ']'
 %nonassoc '|'
 
 %union {
@@ -16,7 +22,6 @@
 	long long int i;
 }
 
-%type <astnode_p> binary_expr
 %token <i> NUMBER
 %token <s> IDENT
 %token 	CHARLIT
@@ -82,18 +87,27 @@
 %token 	_IMAGINARY
 %token EOL
 
+%type <astnode_p> additive_expr;
+%type <astnode_p> multipli_expr;
+%type <astnode_p> cast_expr;
 %type <astnode_p> prime_expr;
+%type <astnode_p> unary_expr;
+%type <astnode_p> assignment_expr;
+%type <astnode_p> argu_expr_list;
+%type <astnode_p> postfix_expr;
 
 %%
 expr:	//Nothing
-	| expr binary_expr EOL {
+	| expr additive_expr EOL {
 		print_tree($2, 0);
 		tree_free($2);
 	}
+	;
+
 prime_expr:	
 	IDENT {
 		$$ = astnode_alloc(AST_ident);
-		$$->u.name = $1;
+		$$->u.ident.name = $1;
 	}
 	| NUMBER {
 		$$ = astnode_alloc(AST_num);
@@ -103,20 +117,58 @@ prime_expr:
 	| '(' prime_expr ')' {
 		$$ = $2;
 	}
-	
+	;
 
-binary_expr: 	binary_expr '+' binary_expr {
+unary_expr:
+	postfix_expr {
+
+	}
+	;
+
+argu_expr_list:
+	assignment_expr
+	| argu_expr_list ',' assignment_expr {
+
+	}
+	;
+
+assignment_expr:
+	unary_expr '=' assignment_expr {;}
+	;
+
+postfix_expr:
+	prime_expr {;}
+	| postfix_expr '[' expr ']' {;}
+	| postfix_expr '(' argu_expr_list ')' {
+
+	}
+	;
+
+additive_expr:
+	multipli_expr {;}
+	| additive_expr '+' multipli_expr {
 		$$ = astnode_alloc(AST_binop);
 		struct astnode_binop *n = &($$->u.binop);
 		n->operator = '+';
 		n->left = $1;
 		n->right = $3;
 	}
-	| NUMBER {
-		$$ = astnode_alloc(AST_num);
-		struct astnode_num *n = &($$->u.num);
-		n->value = $1;
-	};
+	;
+
+multipli_expr: cast_expr {}
+	| multipli_expr '*' cast_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '*';
+		n->left = $1;
+		n->right = $3;
+	}
+	;
+
+cast_expr:
+	unary_expr{}
+	;
+
 %%
 
 yyerror(char *s){

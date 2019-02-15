@@ -16,10 +16,12 @@ struct astnode* astnode_alloc(int type){
 void print_tree(struct astnode *node, int indent){
 	char space = ' ';
 	indent++;
+	int temp = indent;
 	while (indent > 1){
 		printf("%c", space);
 		indent--;
 	}
+	indent = temp;
 	switch(node->node_type){
 		case AST_binop:
 		{	printf("BINARY OP %c\n", node->u.binop.operator);

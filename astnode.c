@@ -1,5 +1,5 @@
 #include "astnode.h"
-//#include "parser.tab.h"
+#include "parser.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -24,9 +24,25 @@ void print_tree(struct astnode *node, int indent){
 	indent = temp;
 	switch(node->node_type){
 		case AST_binop:
-		{	printf("BINARY OP %c\n", node->u.binop.operator);
+		{	
+			switch(node->u.binop.operator){
+				case '+': printf("BINARY OP '+'\n"); break;
+				case '-': printf("BINARY OP '-'\n"); break;
+				case '*': printf("BINARY OP '*'\n"); break;
+				case '/': printf("BINARY OP '/'\n"); break;
+				case '%': printf("BINARY OP '%'\n"); break;
+				case SHR: printf("BINARY OP '<<'\n"); break;
+				case SHL: printf("BINARY OP '>>'\n"); break;
+				default: printf("internal error: not finding the binary oprator %d\n", node->u.binop.operator);
+			}
+			//printf("BINARY OP %c\n", node->u.binop.operator);
 			print_tree(node->u.binop.right, indent);
 			print_tree(node->u.binop.left, indent);
+			break;
+		}
+		case AST_unary:
+		{	printf("UNARY OP %c\n", node->u.unaop.operator);
+			print_tree(node->u.binop.right, indent);
 			break;
 		}
 		case AST_num:

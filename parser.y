@@ -6,16 +6,6 @@
 //#define YYDEBUG 1
 %}
 
-
-%left ','
-%right '='
-%right '?' ':'
-%left '+' '-'
-%left '*' '/' '%'
-%left '(' ')'
-%left '[' ']'
-%nonassoc '|'
-
 %union {
 	struct astnode* astnode_p;
 	char *s;
@@ -29,8 +19,8 @@
 %token 	INDSEL
 %token 	PLUSPLUS
 %token 	MINUSMINUS
-%token 	SHL
-%token 	SHR
+%token 	<s> SHL
+%token 	<s> SHR
 %token 	LTEQ
 %token 	GTEQ
 %token 	EQEQ
@@ -87,6 +77,16 @@
 %token 	_IMAGINARY
 %token EOL
 
+%left ','
+%right '='
+%right '?' ':'
+%left SHL SHR
+%left '+' '-'
+%left '*' '/' '%'
+%left '(' ')'
+%left '[' ']'
+%nonassoc '|'
+
 %type <astnode_p> additive_expr;
 %type <astnode_p> multipli_expr;
 %type <astnode_p> cast_expr;
@@ -95,10 +95,11 @@
 %type <astnode_p> assignment_expr;
 %type <astnode_p> argu_expr_list;
 %type <astnode_p> postfix_expr;
+%type <astnode_p> shift_expr;
 
 %%
 expr:	//Nothing
-	| expr additive_expr EOL {
+	| expr shift_expr EOL {
 		print_tree($2, 0);
 		tree_free($2);
 	}
@@ -120,8 +121,42 @@ prime_expr:
 	;
 
 unary_expr:
-	postfix_expr {
-
+	postfix_expr { $$ = $1; }
+	| '&' cast_expr {
+		$$ = astnode_alloc(AST_unary);
+		struct astnode_unaop *n = &($$->u.unaop);
+		n->operator = '&';
+		n->right = $2;
+	}
+	| '*' cast_expr {
+		$$ = astnode_alloc(AST_unary);
+		struct astnode_unaop *n = &($$->u.unaop);
+		n->operator = '*';
+		n->right = $2;
+	}
+	| '+' cast_expr {
+		$$ = astnode_alloc(AST_unary);
+		struct astnode_unaop *n = &($$->u.unaop);
+		n->operator = '+';
+		n->right = $2;
+	}
+	| '-' cast_expr {
+		$$ = astnode_alloc(AST_unary);
+        	struct astnode_unaop *n = &($$->u.unaop);
+		n->operator = '-';
+		n->right = $2;
+	}
+	| '~' cast_expr {
+		$$ = astnode_alloc(AST_unary);
+                struct astnode_unaop *n = &($$->u.unaop);
+		n->operator = '~';
+		n->right = $2;
+	}
+	| '!' cast_expr {
+		$$ = astnode_alloc(AST_unary);
+		struct astnode_unaop *n = &($$->u.unaop);
+		n->operator = '~';
+		n->right = $2;
 	}
 	;
 
@@ -137,7 +172,7 @@ assignment_expr:
 	;
 
 postfix_expr:
-	prime_expr {;}
+	prime_expr {$$ = $1;}
 	| postfix_expr '[' expr ']' {;}
 	| postfix_expr '(' argu_expr_list ')' {
 
@@ -145,7 +180,7 @@ postfix_expr:
 	;
 
 additive_expr:
-	multipli_expr {;}
+	multipli_expr { $$ = $1;}
 	| additive_expr '+' multipli_expr {
 		$$ = astnode_alloc(AST_binop);
 		struct astnode_binop *n = &($$->u.binop);
@@ -153,9 +188,17 @@ additive_expr:
 		n->left = $1;
 		n->right = $3;
 	}
+	| additive_expr '-' multipli_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '-';
+		n->left = $1;
+		n->right = $3;
+	}
 	;
 
-multipli_expr: cast_expr {}
+multipli_expr: 
+	cast_expr { $$ = $1;}
 	| multipli_expr '*' cast_expr {
 		$$ = astnode_alloc(AST_binop);
 		struct astnode_binop *n = &($$->u.binop);
@@ -163,11 +206,42 @@ multipli_expr: cast_expr {}
 		n->left = $1;
 		n->right = $3;
 	}
+	| multipli_expr '/' cast_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '/';
+		n->left = $1;
+		n->right = $3;
+	}
+	| multipli_expr '%' cast_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '%';
+		n->left = $1;
+		n->right = $3;
+	}
 	;
 
-cast_expr:
-	unary_expr{}
+cast_expr: 
+	unary_expr{ $$ = $1;}
 	;
+
+shift_expr: 
+	additive_expr	{ $$ = $1; }
+	| shift_expr SHL additive_expr
+	{	$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = SHL;
+		n->left = $1;
+		n->right = $3;
+	}
+	| shift_expr SHR additive_expr
+	{	$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = SHR;
+		n->left = $1;
+		n->right = $3;
+	};
 
 %%
 

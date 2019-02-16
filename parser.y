@@ -21,8 +21,8 @@
 %token 	MINUSMINUS
 %token 	<s> SHL
 %token 	<s> SHR
-%token 	LTEQ
-%token 	GTEQ
+%token 	<s> LTEQ
+%token 	<s> GTEQ
 %token 	EQEQ
 %token 	NOTEQ
 %token 	LOGAND
@@ -80,6 +80,7 @@
 %left ','
 %right '='
 %right '?' ':'
+%left '>' '<' LTEQ GTEQ
 %left SHL SHR
 %left '+' '-'
 %left '*' '/' '%'
@@ -96,10 +97,11 @@
 %type <astnode_p> argu_expr_list;
 %type <astnode_p> postfix_expr;
 %type <astnode_p> shift_expr;
+%type <astnode_p> relational_expr;
 
 %%
 expr:	//Nothing
-	| expr shift_expr EOL {
+	| expr relational_expr EOL {
 		print_tree($2, 0);
 		tree_free($2);
 	}
@@ -242,6 +244,38 @@ shift_expr:
 		n->left = $1;
 		n->right = $3;
 	};
+
+relational_expr:
+	shift_expr { $$ = $1; }
+	| relational_expr '>' shift_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '>';
+		n->left = $1;
+                n->right = $3;
+	}
+	| relational_expr '<' shift_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '<';
+		n->left = $1;
+		n->right = $3;
+	}
+	| relational_expr LTEQ shift_expr{
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = LTEQ;
+		n->left = $1;
+		n->right = $3;
+	}
+	| relational_expr GTEQ shift_expr{
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = GTEQ;
+		n->left = $1;
+		n->right = $3;
+	}
+	;
 
 %%
 

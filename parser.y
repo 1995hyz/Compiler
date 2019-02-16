@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "astnode.h"
 
 //#define YYDEBUG 1
@@ -14,19 +15,19 @@
 
 %token <i> NUMBER
 %token <s> IDENT
-%token 	CHARLIT
-%token 	STRING
+%token <i> CHARLIT
+%token <s> STRING
 %token 	INDSEL
 %token 	PLUSPLUS
 %token 	MINUSMINUS
-%token 	<s> SHL
-%token 	<s> SHR
-%token 	<s> LTEQ
-%token 	<s> GTEQ
-%token 	EQEQ
-%token 	NOTEQ
-%token 	LOGAND
-%token 	LOGOR
+%token <s> SHL
+%token <s> SHR
+%token <s> LTEQ
+%token <s> GTEQ
+%token <s> EQEQ
+%token <s> NOTEQ
+%token <s> LOGAND
+%token <s> LOGOR
 %token 	ELLIPSIS
 %token 	TIMESEQ
 %token 	DIVEQ
@@ -80,13 +81,18 @@
 %left ','
 %right '='
 %right '?' ':'
+%left LOGOR
+%left LOGAND
+%left '|'
+%left '^'
+%left '&'
+%left EQEQ NOTEQ
 %left '>' '<' LTEQ GTEQ
 %left SHL SHR
 %left '+' '-'
 %left '*' '/' '%'
 %left '(' ')'
 %left '[' ']'
-%nonassoc '|'
 
 %type <astnode_p> additive_expr;
 %type <astnode_p> multipli_expr;
@@ -98,10 +104,17 @@
 %type <astnode_p> postfix_expr;
 %type <astnode_p> shift_expr;
 %type <astnode_p> relational_expr;
+%type <astnode_p> equality_expr;
+%type <astnode_p> and_expr;
+%type <astnode_p> excl_or_expr;
+%type <astnode_p> incl_or_expr;
+%type <astnode_p> log_and_expr;
+%type <astnode_p> log_or_expr;
+%type <astnode_p> conditional_expr;
 
 %%
 expr:	//Nothing
-	| expr relational_expr EOL {
+	| expr conditional_expr EOL {
 		print_tree($2, 0);
 		tree_free($2);
 	}
@@ -110,12 +123,22 @@ expr:	//Nothing
 prime_expr:	
 	IDENT {
 		$$ = astnode_alloc(AST_ident);
-		$$->u.ident.name = $1;
+		strncpy($$->u.ident.name, $1, 1024);
 	}
 	| NUMBER {
 		$$ = astnode_alloc(AST_num);
 		struct astnode_num *n = &($$->u.num);
 		n->value = $1;
+	}
+	| CHARLIT {
+		$$ = astnode_alloc(AST_num);
+		struct astnode_num *n = &($$->u.num);
+		n->value = $1;
+	}
+	| STRING {
+		$$ = astnode_alloc(AST_string);
+		struct astnode_string *n = &($$->u.string);
+		strncpy(n->value, $1, 1024);
 	}
 	| '(' prime_expr ')' {
 		$$ = $2;
@@ -275,6 +298,83 @@ relational_expr:
 		n->left = $1;
 		n->right = $3;
 	}
+	;
+
+equality_expr:
+	relational_expr { $$ = $1; }
+	| equality_expr EQEQ relational_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop); 	
+		n->operator = EQEQ;
+		n->left = $1;
+		n->right = $3;
+	}
+	| equality_expr NOTEQ relational_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop); 
+		n->operator = NOTEQ;
+		n->left = $1;
+		n->right = $3;
+	}
+	;
+
+and_expr:
+	equality_expr { $$ = $1; }
+	| and_expr '&' equality_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop); 
+		n->operator = '&';
+		n->left = $1;
+		n->right = $3; 	
+	}
+	;
+
+excl_or_expr:
+	and_expr { $$ = $1; }
+	| excl_or_expr '^' and_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop); 
+		n->operator = '^';
+		n->left = $1;
+		n->right = $3; 
+	}
+	;
+
+incl_or_expr:
+	excl_or_expr { $$ = $1; }
+	| incl_or_expr '|' excl_or_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '|';
+		n->left = $1;
+		n->right = $3;
+	}
+	;
+
+log_and_expr:
+	incl_or_expr { $$ = $1; }
+	| log_and_expr LOGAND incl_or_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = LOGAND;
+		n->left = $1;
+		n->right = $3;
+	}
+	;
+
+log_or_expr:
+	log_and_expr { $$ = $1; }
+	| log_or_expr LOGOR log_and_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = LOGOR;
+		n->left = $1;
+		n->right = $3;
+	}
+	;
+
+conditional_expr:
+	log_or_expr { $$ = $1; }
 	;
 
 %%

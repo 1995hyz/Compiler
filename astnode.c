@@ -23,6 +23,11 @@ void print_tree(struct astnode *node, int indent){
 	}
 	indent = temp;
 	switch(node->node_type){
+		case AST_ident:
+		{
+			printf("IDENT %s\n", node->u.ident.name);
+			break;
+		}
 		case AST_binop:
 		{	
 			switch(node->u.binop.operator){
@@ -31,12 +36,19 @@ void print_tree(struct astnode *node, int indent){
 				case '*': printf("BINARY OP '*'\n"); break;
 				case '/': printf("BINARY OP '/'\n"); break;
 				case '%': printf("BINARY OP '%'\n"); break;
-				case SHR: printf("BINARY OP '<<'\n"); break;
-				case SHL: printf("BINARY OP '>>'\n"); break;
-				case '>': printf("BINARY OP '>'\n"); break;
-				case '<': printf("BINARY OP '<'\n"); break;
-				case LTEQ: printf("BINARY OP '<='\n"); break;
-				case GTEQ: printf("BINARY OP '>='\n"); break;
+				case SHR: printf("BINARY OP <<\n"); break;
+				case SHL: printf("BINARY OP >>\n"); break;
+				case '>': printf("COMPARISON OP >\n"); break;
+				case '<': printf("COMPARISON OP <\n"); break;
+				case LTEQ: printf("COMPARISON OP <=\n"); break;
+				case GTEQ: printf("COMPARISON OP >=\n"); break;
+				case EQEQ: printf("COMPARISON OP ==\n"); break;
+				case NOTEQ: printf("COMPARISON OP !=\n"); break;
+				case '&': printf("BINARY OP &\n"); break;
+				case '^': printf("BINARY OP ^\n"); break;
+				case '|': printf("BINARY OP |\n"); break;
+				case LOGAND: printf("LOGICAL OP &&\n"); break;
+				case LOGOR: printf("LOGICAL OP ||\n"); break;
 				default: printf("internal error: not finding the binary oprator %d\n", node->u.binop.operator);
 			}
 			//printf("BINARY OP %c\n", node->u.binop.operator);
@@ -50,8 +62,13 @@ void print_tree(struct astnode *node, int indent){
 			break;
 		}
 		case AST_num:
-			printf("NUM: %lld\n", node->u.num.value);	
+		{	printf("NUM %lld\n", node->u.num.value);	
 			break;
+		}
+		case AST_string:
+		{	printf("STRING %s\n", node->u.string.value);
+			break;
+		}
 		default: printf("internal error: free bad node %d\n", node->node_type);
 	}
 }

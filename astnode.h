@@ -5,6 +5,7 @@
 #define AST_unary 2
 #define AST_num 3
 #define AST_ident 4
+#define AST_string 5
 
 extern int yylineno;
 struct astnode;
@@ -26,7 +27,13 @@ struct astnode_num{
 };
 
 struct astnode_ident{
-	char *name;
+	int node_type;
+	char name[1024];
+};
+
+struct astnode_string{
+	int node_type;
+	char value[1024];
 };
 
 struct astnode {
@@ -36,6 +43,7 @@ struct astnode {
 		struct astnode_unaop unaop;
 		struct astnode_num num;
 		struct astnode_ident ident;
+		struct astnode_string string;
 	} u;
 };
 

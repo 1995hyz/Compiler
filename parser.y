@@ -4,7 +4,7 @@
 #include <string.h>
 #include "astnode.h"
 
-//#define YYDEBUG 1
+#define YYDEBUG 1
 %}
 
 %union {
@@ -29,7 +29,7 @@
 %token <s> LOGAND
 %token <s> LOGOR
 %token 	ELLIPSIS
-%token 	TIMESEQ
+%token <s> TIMESEQ
 %token 	DIVEQ
 %token 	MODEQ
 %token 	PLUSEQ
@@ -79,6 +79,7 @@
 %token EOL
 
 %left ','
+%right TIMESEQ
 %right '='
 %right '?' ':'
 %left LOGOR
@@ -94,12 +95,12 @@
 %left '(' ')'
 %left '[' ']'
 
+/*%type <astnode_p> expr;*/
 %type <astnode_p> additive_expr;
 %type <astnode_p> multipli_expr;
 %type <astnode_p> cast_expr;
 %type <astnode_p> prime_expr;
 %type <astnode_p> unary_expr;
-%type <astnode_p> assignment_expr;
 %type <astnode_p> argu_expr_list;
 %type <astnode_p> postfix_expr;
 %type <astnode_p> shift_expr;
@@ -111,13 +112,22 @@
 %type <astnode_p> log_and_expr;
 %type <astnode_p> log_or_expr;
 %type <astnode_p> conditional_expr;
+%type <astnode_p> assignment_expr;
 
 %%
-expr:	//Nothing
-	| expr conditional_expr EOL {
+expr:	//Nothing	
+	| expr assignment_expr EOL {
+		//$$ = $1;
 		print_tree($2, 0);
 		tree_free($2);
 	}
+	/*| expr ',' assignment_expr EOL {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = ',';
+		n->left = $1;
+		n->right = $3;
+	}*/
 	;
 
 prime_expr:	
@@ -151,36 +161,42 @@ unary_expr:
 		$$ = astnode_alloc(AST_unary);
 		struct astnode_unaop *n = &($$->u.unaop);
 		n->operator = '&';
+		n->left = NULL;
 		n->right = $2;
 	}
 	| '*' cast_expr {
 		$$ = astnode_alloc(AST_unary);
 		struct astnode_unaop *n = &($$->u.unaop);
 		n->operator = '*';
+		n->left = NULL;
 		n->right = $2;
 	}
 	| '+' cast_expr {
 		$$ = astnode_alloc(AST_unary);
 		struct astnode_unaop *n = &($$->u.unaop);
 		n->operator = '+';
+		n->left = NULL;
 		n->right = $2;
 	}
 	| '-' cast_expr {
 		$$ = astnode_alloc(AST_unary);
         	struct astnode_unaop *n = &($$->u.unaop);
 		n->operator = '-';
+		n->left = NULL;
 		n->right = $2;
 	}
 	| '~' cast_expr {
 		$$ = astnode_alloc(AST_unary);
                 struct astnode_unaop *n = &($$->u.unaop);
 		n->operator = '~';
+		n->left = NULL;
 		n->right = $2;
 	}
 	| '!' cast_expr {
 		$$ = astnode_alloc(AST_unary);
 		struct astnode_unaop *n = &($$->u.unaop);
 		n->operator = '~';
+		n->left = NULL;
 		n->right = $2;
 	}
 	;
@@ -190,10 +206,6 @@ argu_expr_list:
 	| argu_expr_list ',' assignment_expr {
 
 	}
-	;
-
-assignment_expr:
-	unary_expr '=' assignment_expr {;}
 	;
 
 postfix_expr:
@@ -377,6 +389,82 @@ conditional_expr:
 	log_or_expr { $$ = $1; }
 	;
 
+assignment_expr:
+	conditional_expr { $$ = $1; }
+	| unary_expr '=' assignment_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '=';
+		n->left = $1;
+		n->right = $3;
+	}
+	| unary_expr TIMESEQ assignment_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '*';
+		n->left = $1;
+		n->right = $3;
+		$3 = $$;
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *m = &($$->u.binop);
+		m->operator = '=';
+		m->left = $1;
+		m->right = $3;
+	}
+	| unary_expr DIVEQ assignment_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '/';
+		n->left = $1;
+		n->right = $3;
+		$3 = $$;
+		$$ = astnode_alloc(AST_binop);
+                struct astnode_binop *m = &($$->u.binop);
+		m->operator = '=';
+		m->left = $1;
+		m->right = $3;
+	}
+	| unary_expr MODEQ assignment_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '%';
+		n->left = $1;
+		n->right = $3;
+		$3 = $$;
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *m = &($$->u.binop);
+		m->operator = '=';
+		m->left = $1;
+		m->right = $3;
+	}
+	| unary_expr PLUSEQ assignment_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '+';
+		n->left = $1;
+		n->right = $3; 	
+		$3 = $$;
+	        $$ = astnode_alloc(AST_binop);
+                struct astnode_binop *m = &($$->u.binop);
+		m->operator = '=';
+		m->left = $1;
+		m->right = $3;
+	}
+	| unary_expr MINUSEQ assignment_expr {
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '-';
+		n->left = $1;
+		n->right = $3; 	
+		$3 = $$;
+	        $$ = astnode_alloc(AST_binop);
+                struct astnode_binop *m = &($$->u.binop);
+		m->operator = '=';
+		m->left = $1;
+		m->right = $3;
+	}	
+	;
+
 %%
 
 yyerror(char *s){
@@ -386,6 +474,6 @@ yyerror(char *s){
 
 int main(){
 	printf("> ");
-	//yydebug=1;
+	yydebug=1;
 	return yyparse();
 }

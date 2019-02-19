@@ -49,16 +49,23 @@ void print_tree(struct astnode *node, int indent){
 				case '|': printf("BINARY OP |\n"); break;
 				case LOGAND: printf("LOGICAL OP &&\n"); break;
 				case LOGOR: printf("LOGICAL OP ||\n"); break;
+				case '=': printf("ASSIGNMENT\n"); break;
+				case ',': printf("BINARY OP ','\n"); break;
 				default: printf("internal error: not finding the binary oprator %d\n", node->u.binop.operator);
 			}
 			//printf("BINARY OP %c\n", node->u.binop.operator);
-			print_tree(node->u.binop.right, indent);
 			print_tree(node->u.binop.left, indent);
+			print_tree(node->u.binop.right, indent);
 			break;
 		}
 		case AST_unary:
 		{	printf("UNARY OP %c\n", node->u.unaop.operator);
-			print_tree(node->u.binop.right, indent);
+			if(node->u.binop.left != NULL){
+				print_tree(node->u.binop.left, indent);
+			}
+			if(node->u.binop.right != NULL){
+				print_tree(node->u.binop.right, indent);
+			}
 			break;
 		}
 		case AST_num:

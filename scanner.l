@@ -150,6 +150,7 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 \?	{yylval.i='?'; return '?';}
 \/	{yylval.i='/'; return '/';}
 \|	{yylval.i='|'; return '|';}
+=	{yylval.i='='; return '=';}
 
 ([_a-zA-Z])([_a-zA-Z0-9])*	{
 		yylval.s = yytext;

@@ -4,7 +4,7 @@
 #include <string.h>
 #include "astnode.h"
 
-//#define YYDEBUG 1
+#define YYDEBUG 1
 %}
 
 %union {
@@ -18,8 +18,8 @@
 %token <i> CHARLIT
 %token <s> STRING
 %token 	INDSEL
-%token 	PLUSPLUS
-%token 	MINUSMINUS
+%token <s> PLUSPLUS
+%token <s> MINUSMINUS
 %token <s> SHL
 %token <s> SHR
 %token <s> LTEQ
@@ -37,8 +37,8 @@
 %token <s> SHLEQ
 %token <s> SHREQ
 %token <s> ANDEQ
-%token 	OREQ
-%token 	XOREQ
+%token <s> OREQ
+%token <s> XOREQ
 %token 	AUTO
 %token 	BREAK
 %token 	CASE
@@ -92,8 +92,10 @@
 %left SHL SHR
 %left '+' '-'
 %left '*' '/' '%'
-%left '(' ')'
+%left PLUSPLUS MINUSMINUS
+%left '.'
 %left '[' ']'
+%left '(' ')'
 
 %type <astnode_p> expr;
 %type <astnode_p> additive_expr;
@@ -209,9 +211,13 @@ unary_expr:
 	;
 
 argu_expr_list:
-	assignment_expr
+	assignment_expr { $$ = $1; }
 	| argu_expr_list ',' assignment_expr {
-
+		$$ = astnode_alloc(AST_binop);
+                struct astnode_binop *n = &($$->u.binop);
+		n->operator = ',';
+		n->left = $1;
+		n->right = $3;
 	}
 	;
 
@@ -219,7 +225,31 @@ postfix_expr:
 	prime_expr {$$ = $1;}
 	| postfix_expr '[' expr ']' {;}
 	| postfix_expr '(' argu_expr_list ')' {
-
+		;
+	}
+	| postfix_expr PLUSPLUS {
+		$$ = astnode_alloc(AST_unary);
+		struct astnode_unaop *n = &($$->u.unaop);
+		n->operator = PLUSPLUS;
+		n->left = $1;
+		n->right = NULL;
+	}
+	| postfix_expr MINUSMINUS {
+		$$ = astnode_alloc(AST_unary);
+		struct astnode_unaop *n = &($$->u.unaop);
+		n->operator = MINUSMINUS;
+		n->left = $1;
+		n->right = NULL;
+	}
+	| postfix_expr '.' IDENT {
+		$$ = astnode_alloc(AST_ident);
+		strncpy($$->u.ident.name, $3, 1024);
+		struct astnode* temp = $$;
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '.';
+		n->left = $1;
+		n->right = temp;
 	}
 	;
 
@@ -546,6 +576,6 @@ yyerror(char *s){
 
 int main(){
 	printf("> ");
-	//yydebug=1;
+	yydebug=1;
 	return yyparse();
 }

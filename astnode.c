@@ -36,8 +36,8 @@ void print_tree(struct astnode *node, int indent){
 				case '*': printf("BINARY OP '*'\n"); break;
 				case '/': printf("BINARY OP '/'\n"); break;
 				case '%': printf("BINARY OP '%'\n"); break;
-				case SHR: printf("BINARY OP <<\n"); break;
-				case SHL: printf("BINARY OP >>\n"); break;
+				case SHR: printf("BINARY OP >>\n"); break;
+				case SHL: printf("BINARY OP <<\n"); break;
 				case '>': printf("COMPARISON OP >\n"); break;
 				case '<': printf("COMPARISON OP <\n"); break;
 				case LTEQ: printf("COMPARISON OP <=\n"); break;

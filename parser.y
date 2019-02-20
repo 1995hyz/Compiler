@@ -211,13 +211,22 @@ unary_expr:
 	;
 
 argu_expr_list:
-	assignment_expr { $$ = $1; }
+	assignment_expr { 
+		$$ = astnode_alloc(AST_argu);
+		$$->u.argu.next = NULL;
+		$$->u.argu.num = 1;
+		$$->u.argu.value = $1;
+		//($0->u.func->num)++;
+	}
 	| argu_expr_list ',' assignment_expr {
-		$$ = astnode_alloc(AST_binop);
-                struct astnode_binop *n = &($$->u.binop);
-		n->operator = ',';
-		n->left = $1;
-		n->right = $3;
+		$$ = $1;
+		struct astnode* temp = astnode_alloc(AST_argu);
+		struct astnode_argu *n = &(temp->u.argu);
+		n->next = NULL;
+		n->value = $3;
+		n->num = ($1->u.argu.num)++;
+		$$->u.argu.next = temp;
+		//($0->u.func->num)++;
 	}
 	;
 
@@ -225,6 +234,11 @@ postfix_expr:
 	prime_expr {$$ = $1;}
 	| postfix_expr '[' expr ']' {;}
 	| postfix_expr '(' argu_expr_list ')' {
+		$$ = astnode_alloc(AST_func);
+		struct astnode_func *n = &($$->u.func);
+		n->name = $1;
+		n->next = $3;
+		n->num = 0;
 		;
 	}
 	| postfix_expr PLUSPLUS {

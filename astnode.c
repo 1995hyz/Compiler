@@ -82,6 +82,17 @@ void print_tree(struct astnode *node, int indent){
 		{	printf("STRING %s\n", node->u.string.value);
 			break;
 		}
+		case AST_func:
+		{	printf("FUNC\n");
+			print_tree(node->u.func.name, indent);
+			print_tree(node->u.func.next, indent);
+			break;
+		}
+		case AST_argu:
+		{	printf("argu #%d=\n", node->u.argu.num);
+			break;
+
+		}
 		default: printf("internal error: free bad node %d\n", node->node_type);
 	}
 }

@@ -6,6 +6,8 @@
 #define AST_num 3
 #define AST_ident 4
 #define AST_string 5
+#define AST_func 6
+#define AST_argu 7
 
 extern int yylineno;
 struct astnode;
@@ -36,6 +38,20 @@ struct astnode_string{
 	char value[1024];
 };
 
+struct astnode_func{
+	int node_type;
+	struct astnode *name;
+	struct astnode *next;
+	int num;
+};
+
+struct astnode_argu{
+	int node_type;
+	struct astnode *next;
+	struct astnode *value;
+	int num;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -44,6 +60,8 @@ struct astnode {
 		struct astnode_num num;
 		struct astnode_ident ident;
 		struct astnode_string string;
+		struct astnode_func func;
+		struct astnode_argu argu;
 	} u;
 };
 

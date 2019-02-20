@@ -122,11 +122,6 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		yylval.s = yytext;
 		return REAL;
 	}
-({HEX_DIGIT_SEQ}?\.{HEX_DIGIT_SEQ})|({HEX_DIGIT_SEQ}\.)	{
-		//Hexdecimal Fractional Constant
-		yylval.s = yytext;
-		return REAL;
-	}
 ~	{yylval.i='~'; return '~';}
 !	{yylval.i='!'; return '!';}
 %	{yylval.i='%'; return '%';}

@@ -48,6 +48,7 @@ struct astnode_func{
 struct astnode_argu{
 	int node_type;
 	struct astnode *next;
+	struct astnode *start;
 	struct astnode *value;
 	int num;
 };

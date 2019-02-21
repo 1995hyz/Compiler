@@ -91,6 +91,10 @@ void print_tree(struct astnode *node, int indent){
 		case AST_argu:
 		{	printf("argu #%d=\n", node->u.argu.num);
 			print_tree(node->u.argu.value, indent);
+			if(node->u.argu.next != NULL){
+				indent--;
+				print_tree(node->u.argu.next, indent);
+			}
 			break;
 
 		}

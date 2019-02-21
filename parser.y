@@ -163,7 +163,7 @@ prime_expr:
 		struct astnode_string *n = &($$->u.string);
 		strncpy(n->value, $1, 1024);
 	}
-	| '(' prime_expr ')' {
+	| '(' expr ')' {
 		$$ = $2;
 	}
 	;
@@ -247,17 +247,18 @@ argu_expr_list:
 		$$ = astnode_alloc(AST_argu);
 		$$->u.argu.next = NULL;
 		$$->u.argu.num = 1;
+		$$->u.argu.start = $$;
 		$$->u.argu.value = $1;
 		//($0->u.func->num)++;
 	}
 	| argu_expr_list ',' assignment_expr {
-		$$ = $1;
-		struct astnode* temp = astnode_alloc(AST_argu);
-		struct astnode_argu *n = &(temp->u.argu);
+		$$ = astnode_alloc(AST_argu);
+		struct astnode_argu *n = &($$->u.argu);
 		n->next = NULL;
 		n->value = $3;
-		n->num = ($1->u.argu.num)++;
-		$$->u.argu.next = temp;
+		n->num = ($1->u.argu.num)+1;
+		n->start = ($1->u.argu.start);
+		$1->u.argu.next = $$;
 		//($0->u.func->num)++;
 	}
 	;
@@ -269,7 +270,7 @@ postfix_expr:
 		$$ = astnode_alloc(AST_func);
 		struct astnode_func *n = &($$->u.func);
 		n->name = $1;
-		n->next = $3;
+		n->next = $3->u.argu.start;
 		n->num = 0;
 		;
 	}

@@ -31,11 +31,11 @@ void print_tree(struct astnode *node, int indent){
 		case AST_binop:
 		{	
 			switch(node->u.binop.operator){
-				case '+': printf("BINARY OP '+'\n"); break;
-				case '-': printf("BINARY OP '-'\n"); break;
-				case '*': printf("BINARY OP '*'\n"); break;
-				case '/': printf("BINARY OP '/'\n"); break;
-				case '%': printf("BINARY OP '%'\n"); break;
+				case '+': printf("BINARY OP +\n"); break;
+				case '-': printf("BINARY OP -\n"); break;
+				case '*': printf("BINARY OP *\n"); break;
+				case '/': printf("BINARY OP /\n"); break;
+				case '%': printf("BINARY OP %\n"); break;
 				case SHR: printf("BINARY OP >>\n"); break;
 				case SHL: printf("BINARY OP <<\n"); break;
 				case '>': printf("COMPARISON OP >\n"); break;
@@ -50,7 +50,7 @@ void print_tree(struct astnode *node, int indent){
 				case LOGAND: printf("LOGICAL OP &&\n"); break;
 				case LOGOR: printf("LOGICAL OP ||\n"); break;
 				case '=': printf("ASSIGNMENT\n"); break;
-				case ',': printf("BINARY OP ','\n"); break;
+				case ',': printf("BINARY OP ,\n"); break;
 				case '.': printf("SELECT\n"); break;
 				default: printf("internal error: not finding the binary oprator %d\n", node->u.binop.operator);
 			}
@@ -90,6 +90,7 @@ void print_tree(struct astnode *node, int indent){
 		}
 		case AST_argu:
 		{	printf("argu #%d=\n", node->u.argu.num);
+			print_tree(node->u.argu.value, indent);
 			break;
 
 		}

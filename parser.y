@@ -4,7 +4,7 @@
 #include <string.h>
 #include "astnode.h"
 
-#define YYDEBUG 1
+//#define YYDEBUG 1
 %}
 
 %union {
@@ -117,26 +117,30 @@
 %type <astnode_p> assignment_expr;
 
 %%
-result: //Nothing
-	| result expr {
-		print_tree($2, 0);
+result: 
+	expr ';' {
+		print_tree($1, 0);
+		tree_free($1);
+	}
+	| result expr ';' {
+		print_tree($2, 0);	
 		tree_free($2);
 	}
 	;
 
-expr:		
-	assignment_expr EOL {
+expr:	
+	assignment_expr {
 		$$ = $1;
 		//print_tree($2, 0);
 		//tree_free($2);
 	}
-	/*| expr ',' assignment_expr EOL {
+	| expr ',' assignment_expr {
 		$$ = astnode_alloc(AST_binop);
 		struct astnode_binop *n = &($$->u.binop);
 		n->operator = ',';
 		n->left = $1;
 		n->right = $3;
-	}*/
+	}
 	;
 
 prime_expr:	
@@ -208,6 +212,34 @@ unary_expr:
 		n->left = NULL;
 		n->right = $2;
 	}
+	| PLUSPLUS unary_expr {
+		struct astnode *temp1 = astnode_alloc(AST_num);
+		temp1->u.num.value = 1;
+		struct astnode *temp2 = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &(temp2->u.binop);
+		n->operator = '+';
+		n->left = $2;
+		n->right = temp1; 	
+	        $$ = astnode_alloc(AST_binop);
+                struct astnode_binop *m = &($$->u.binop);
+		m->operator = '=';
+		m->left = $2;
+		m->right = temp2;
+	}
+	| MINUSMINUS unary_expr {
+		struct astnode *temp1 = astnode_alloc(AST_num);
+		temp1->u.num.value = 1;
+		struct astnode *temp2 = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &(temp2->u.binop);
+		n->operator = '-';
+		n->left = $2;
+		n->right = temp1; 	
+	        $$ = astnode_alloc(AST_binop);
+                struct astnode_binop *m = &($$->u.binop);
+		m->operator = '=';
+		m->left = $2;
+		m->right = temp2;
+	}
 	;
 
 argu_expr_list:
@@ -245,15 +277,15 @@ postfix_expr:
 		$$ = astnode_alloc(AST_unary);
 		struct astnode_unaop *n = &($$->u.unaop);
 		n->operator = PLUSPLUS;
-		n->left = $1;
-		n->right = NULL;
+		n->left = NULL;
+		n->right = $1;
 	}
 	| postfix_expr MINUSMINUS {
 		$$ = astnode_alloc(AST_unary);
 		struct astnode_unaop *n = &($$->u.unaop);
 		n->operator = MINUSMINUS;
-		n->left = $1;
-		n->right = NULL;
+		n->left = NULL;
+		n->right = $1;
 	}
 	| postfix_expr '.' IDENT {
 		$$ = astnode_alloc(AST_ident);
@@ -590,6 +622,6 @@ yyerror(char *s){
 
 int main(){
 	printf("> ");
-	yydebug=1;
+	//yydebug=1;
 	return yyparse();
 }

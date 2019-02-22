@@ -8,6 +8,7 @@
 #define AST_string 5
 #define AST_func 6
 #define AST_argu 7
+#define AST_ternary 8
 
 extern int yylineno;
 struct astnode;
@@ -53,6 +54,13 @@ struct astnode_argu{
 	int num;
 };
 
+struct astnode_ternary{
+	int node_type;
+	struct astnode *first;
+	struct astnode *second;
+	struct astnode *third;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -63,6 +71,7 @@ struct astnode {
 		struct astnode_string string;
 		struct astnode_func func;
 		struct astnode_argu argu;
+		struct astnode_ternary tern;
 	} u;
 };
 

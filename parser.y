@@ -471,6 +471,13 @@ log_or_expr:
 
 conditional_expr:
 	log_or_expr { $$ = $1; }
+	| log_or_expr '?' expr ':' conditional_expr {
+		$$ = astnode_alloc(AST_ternary);
+		struct astnode_ternary *n = &($$->u.tern);
+		n->first = $1;
+		n->second = $3;
+		n->third = $5;
+	}
 	;
 
 assignment_expr:

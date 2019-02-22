@@ -98,6 +98,15 @@ void print_tree(struct astnode *node, int indent){
 			break;
 
 		}
+		case AST_ternary:
+		{	printf("TERNARY OP, IF:\n");
+			print_tree(node->u.tern.first, indent);
+			printf("THEN:\n");
+			print_tree(node->u.tern.second, indent);
+			printf("ELSE:\n");
+			print_tree(node->u.tern.third, indent);
+			break;
+		}
 		default: printf("internal error: free bad node %d\n", node->node_type);
 	}
 }

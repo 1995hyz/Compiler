@@ -97,7 +97,6 @@ void print_tree(struct astnode *node, int indent){
 				print_tree(node->u.argu.next, indent);
 			}
 			break;
-
 		}
 		case AST_ternary:
 		{	printf("TERNARY OP, IF:\n");
@@ -113,6 +112,45 @@ void print_tree(struct astnode *node, int indent){
 }
 
 void tree_free(struct astnode *node){
+	switch(node->node_type) {
+		case AST_ident:
+		case AST_num:
+		case AST_string: {
+			free(node);
+			break;
+		}
+		case AST_binop: {
+			tree_free(node->u.binop.left);
+			tree_free(node->u.binop.right);
+			break;
+		}
+		case AST_unary: {
+			if(node->u.unaop.left != NULL){
+				tree_free(node->u.unaop.left);
+			}
+			if(node->u.unaop.right != NULL){
+				tree_free(node->u.unaop.right);
+			}
+			break;
+		}
+		case AST_func: {
+			tree_free(node->u.func.name);
+			tree_free(node->u.func.next);
+			break;
+		}
+		case AST_argu: {
+			if(node->u.argu.next != NULL){
+				tree_free(node->u.argu.next);
+			}
+			tree_free(node->u.argu.value);
+			break;
+		}
+		case AST_ternary: {
+			tree_free(node->u.tern.first);
+			tree_free(node->u.tern.second);
+			tree_free(node->u.tern.third);
+		}	
+	}
 ;
 
 

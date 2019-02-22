@@ -63,7 +63,7 @@
 %token 	RETURN
 %token 	SHORT
 %token 	SIGNED
-%token 	SIZEOF
+%token <s> SIZEOF
 %token 	STATIC
 %token 	STRUCT
 %token 	SWITCH
@@ -240,6 +240,13 @@ unary_expr:
 		m->left = $2;
 		m->right = temp2;
 	}
+	| SIZEOF unary_expr {
+		$$ = astnode_alloc(AST_unary);
+		struct astnode_unaop *n = &($$->u.unaop);
+		n->operator = SIZEOF;
+		n->left = NULL;
+		n->right = $2;
+	}
 	;
 
 argu_expr_list:
@@ -265,7 +272,18 @@ argu_expr_list:
 
 postfix_expr:
 	prime_expr {$$ = $1;}
-	| postfix_expr '[' expr ']' {;}
+	| postfix_expr '[' expr ']' {
+		struct astnode *temp = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &(temp->u.binop);
+		n->operator = '+';
+		n->left = $1;
+		n->right = $3;
+		$$ = astnode_alloc(AST_unary);
+		struct astnode_unaop *m = &($$->u.unaop);
+		m->operator = '*';
+		m->left = NULL;
+		m->right = temp;
+	}
 	| postfix_expr '(' argu_expr_list ')' {
 		$$ = astnode_alloc(AST_func);
 		struct astnode_func *n = &($$->u.func);
@@ -297,6 +315,20 @@ postfix_expr:
 		n->operator = '.';
 		n->left = $1;
 		n->right = temp;
+	}
+	| postfix_expr INDSEL IDENT {
+		struct astnode *temp = astnode_alloc(AST_unary);
+		struct astnode_unaop *m = &(temp->u.unaop);
+		m->operator = '*';
+		m->left = NULL;
+		m->right = $1;
+		struct astnode *temp_ident = astnode_alloc(AST_ident);
+		strncpy(temp_ident->u.ident.name, $3, 1024);
+		$$ = astnode_alloc(AST_binop);
+		struct astnode_binop *n = &($$->u.binop);
+		n->operator = '.';
+		n->left = temp;
+		n->right = temp_ident;
 	}
 	;
 

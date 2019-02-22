@@ -63,14 +63,15 @@ void print_tree(struct astnode *node, int indent){
 		{	
 			switch(node->u.unaop.operator){
 				case PLUSPLUS: printf("UNARY OP POSTINC\n"); break;
-				case MINUSMINUS: printf("UNARY OP NEGTIC"); break;
+				case MINUSMINUS: printf("UNARY OP NEGTNIC"); break;
+				case SIZEOF: printf("SIZEOF\n"); break;
 				default: printf("UNARY OP %c\n", node->u.unaop.operator);
 			}
-			if(node->u.binop.left != NULL){
-				print_tree(node->u.binop.left, indent);
+			if(node->u.unaop.left != NULL){
+				print_tree(node->u.unaop.left, indent);
 			}
-			if(node->u.binop.right != NULL){
-				print_tree(node->u.binop.right, indent);
+			if(node->u.unaop.right != NULL){
+				print_tree(node->u.unaop.right, indent);
 			}
 			break;
 		}

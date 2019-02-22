@@ -296,6 +296,8 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 		;
 	}
 
+[ ]+	{}
+
 \n	{yylineno++;}
 
  .	{fprintf(stderr, "Error: unknown token %s\n", yytext);}

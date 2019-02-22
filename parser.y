@@ -661,7 +661,7 @@ yyerror(char *s){
 }
 
 int main(){
-	printf("> ");
+	printf(">>>>>>>>>>>>\n");
 	//yydebug=1;
 	return yyparse();
 }

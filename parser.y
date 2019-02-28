@@ -11,6 +11,7 @@
 	struct astnode* astnode_p;
 	char *s;
 	long long int i;
+	int j;
 }
 
 %token <i> NUMBER
@@ -42,39 +43,39 @@
 %token 	AUTO
 %token 	BREAK
 %token 	CASE
-%token 	CHAR
+%token <j> CHAR
 %token 	CONST
 %token 	CONTINUE
 %token 	DEFAULT
 %token 	DO
-%token 	DOUBLE
+%token <j> DOUBLE
 %token 	ELSE
 %token 	ENUM
 %token 	EXTERN
-%token 	FLOAT
+%token <j> FLOAT
 %token 	FOR
 %token 	GOTO
 %token 	IF
 %token 	INLINE
-%token 	INT
-%token 	LONG
+%token <j> INT
+%token <j> LONG
 %token 	REGISTER
 %token 	RESTRICT
 %token 	RETURN
-%token 	SHORT
-%token 	SIGNED
+%token <j> SHORT
+%token <j> SIGNED
 %token <s> SIZEOF
 %token 	STATIC
 %token 	STRUCT
 %token 	SWITCH
 %token 	TYPEDEF
 %token 	UNION
-%token 	UNSIGNED
-%token 	VOID
+%token <j> UNSIGNED
+%token <j> VOID
 %token 	VOLATILE
 %token 	WHILE
-%token 	_BOOL
-%token 	_COMPLEX
+%token <j> _BOOL
+%token <j> _COMPLEX
 %token 	_IMAGINARY
 %token EOL
 
@@ -97,6 +98,7 @@
 %left '[' ']'
 %left '(' ')'
 
+%start decl_or_stmt
 %type <astnode_p> expr;
 %type <astnode_p> additive_expr;
 %type <astnode_p> multipli_expr;
@@ -115,17 +117,23 @@
 %type <astnode_p> log_or_expr;
 %type <astnode_p> conditional_expr;
 %type <astnode_p> assignment_expr;
+%type <astnode_p> declaration;
+%type <astnode_p> init_declarator_list;
+%type <astnode_p> declaration_specifiers;
+%type <astnode_p> type_specifier;
+%type <astnode_p> init_declarator;
+%type <astnode_p> declarator;
+%type <astnode_p> direct_declarator;
+%type <astnode_p> statement;
 
 %%
-result: 
-	expr ';' {
-		print_tree($1, 0);
-		tree_free($1);
-	}
-	| result expr ';' {
-		print_tree($2, 0);	
-		tree_free($2);
-	}
+decl_or_stmt:
+	declaration {}
+	| statement {}
+	;
+
+statement:
+	expr {}
 	;
 
 expr:	
@@ -650,6 +658,60 @@ assignment_expr:
 		m->operator = '=';
 		m->left = $1;
 		m->right = $3;
+	}
+	;
+
+declaration:
+	declaration_specifiers {}
+	| declaration_specifiers init_declarator_list ';' {
+
+	}
+	;
+
+declaration_specifiers: 
+	type_specifier {}
+	| type_specifier declaration_specifiers {
+
+	}
+	;
+
+init_declarator_list:
+	init_declarator {
+
+	}
+	;
+
+init_declarator:
+	declarator {
+
+	}
+	;
+
+type_specifier:
+	VOID {}
+	| CHAR {}
+	| SHORT {}
+	| INT {}
+	| LONG {}
+	| FLOAT {}
+	| DOUBLE {}
+	| SIGNED {}
+	| UNSIGNED {}
+	| _BOOL {}
+	| _COMPLEX {
+
+	}
+	;
+
+declarator:
+	direct_declarator {
+
+	}
+	;
+
+direct_declarator:
+	IDENT {
+
 	}
 	;
 

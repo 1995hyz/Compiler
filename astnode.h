@@ -13,40 +13,40 @@
 extern int yylineno;
 struct astnode;
 
-struct astnode_binop{
+struct astnode_binop {
 	int node_type;
 	int operator;
 	struct astnode *left, *right;
 };
-struct astnode_unaop{
+struct astnode_unaop {
 	int node_type;
 	int operator;
 	struct astnode *left, *right;
 };
 
-struct astnode_num{
+struct astnode_num {
 	int node_type;
 	long long int value;
 };
 
-struct astnode_ident{
+struct astnode_ident {
 	int node_type;
 	char name[1024];
 };
 
-struct astnode_string{
+struct astnode_string {
 	int node_type;
 	char value[1024];
 };
 
-struct astnode_func{
+struct astnode_func {
 	int node_type;
 	struct astnode *name;
 	struct astnode *next;
 	int num;
 };
 
-struct astnode_argu{
+struct astnode_argu {
 	int node_type;
 	struct astnode *next;
 	struct astnode *start;
@@ -54,11 +54,19 @@ struct astnode_argu{
 	int num;
 };
 
-struct astnode_ternary{
+struct astnode_ternary {
 	int node_type;
 	struct astnode *first;
 	struct astnode *second;
 	struct astnode *third;
+};
+
+struct astnode_var {
+	int name_space;
+	int storage_class;
+	char name[1024];
+	int offset;
+	struct astnode *next;
 };
 
 struct astnode {
@@ -72,6 +80,8 @@ struct astnode {
 		struct astnode_func func;
 		struct astnode_argu argu;
 		struct astnode_ternary tern;
+
+		struct astnode_var var;
 	} u;
 };
 

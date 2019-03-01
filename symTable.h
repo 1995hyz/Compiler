@@ -7,12 +7,9 @@
 #define BLOCK_SCOPE 3
 #define PROTO_SCOPE 4
 
-#define TAG 5
-#define LABEL 6
-#define MEMBER 7
-#define ELSE 8
-
-struct sym_table{
+struct sym_table {
 	int scope_type;
 	struct astnode *first;
 }
+
+struct sym_table* sym_table_alloc(int scope_type);

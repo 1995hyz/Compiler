@@ -10,6 +10,11 @@
 #define AST_argu 7
 #define AST_ternary 8
 
+#define TAG 9
+#define LABEL 10
+#define MEMBER 11
+#define ELSE 12
+
 extern int yylineno;
 struct astnode;
 

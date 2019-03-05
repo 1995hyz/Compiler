@@ -13,6 +13,19 @@ struct astnode* astnode_alloc(int type){
 	return new_node;
 }
 
+void astnode_link(struct astnode* head, struct astnode* tail, struct astnode* new_insert) {
+	if(head == NULL) {
+		head = new_insert;
+	}
+	if(tail == NULL) {
+		tail = new_insert;
+	}
+	else {
+		tail->next_node = new_insert;
+		tail = new_insert;
+	}
+}
+
 void print_tree(struct astnode *node, int indent){
 	char space = ' ';
 	indent++;

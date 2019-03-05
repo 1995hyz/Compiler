@@ -3,8 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "astnode.h"
+#include "symTable.h"
 
 //#define YYDEBUG 1
+
+struct astnode* front;
+struct astnode* end;
+struct sym_table *curr_scope;
+
 %}
 
 %union {
@@ -118,10 +124,9 @@
 %type <astnode_p> conditional_expr;
 %type <astnode_p> assignment_expr;
 %type <astnode_p> declaration;
+%type <astnode_p> type_specifier;
 %type <astnode_p> init_declarator_list;
 %type <astnode_p> declaration_specifiers;
-%type <astnode_p> type_specifier;
-%type <astnode_p> init_declarator;
 %type <astnode_p> declarator;
 %type <astnode_p> direct_declarator;
 %type <astnode_p> statement;
@@ -129,11 +134,13 @@
 %%
 decl_or_stmt:
 	declaration {}
-	| statement {}
+	| statement {
+		print_tree($1, 0);
+	}
 	;
 
 statement:
-	expr {}
+	expr ';' {}
 	;
 
 expr:	
@@ -662,56 +669,115 @@ assignment_expr:
 	;
 
 declaration:
-	declaration_specifiers {}
-	| declaration_specifiers init_declarator_list ';' {
-
+	/*declaration_specifiers {}*/
+	declaration_specifiers init_declarator_list ';' {
 	}
 	;
 
 declaration_specifiers: 
-	type_specifier {}
-	| type_specifier declaration_specifiers {
-
+	type_specifier {
+		$$ = $1;
 	}
 	;
 
 init_declarator_list:
-	init_declarator {
-
-	}
-	;
-
-init_declarator:
 	declarator {
-
+		switch($1->node_type) {
+			case AST_ident: {
+				struct sym_entry *n = sym_entry_alloc(VAR_TYPE, $1->u.ident.name, curr_scope, NULL);
+				int i = insert_entry(curr_scope, n);
+				n->first_node = $1->next_node;
+				astnode_link(front, end, $<astnode_p>0);
+				free($1);
+				//printf("%d\n", $<astnode_p>0->u.scaler.scaler_type);
+				print_entry(n);
+				break;
+			}
+		}
 	}
 	;
 
 type_specifier:
-	VOID {}
-	| CHAR {}
-	| SHORT {}
-	| INT {}
-	| LONG {}
-	| FLOAT {}
-	| DOUBLE {}
-	| SIGNED {}
-	| UNSIGNED {}
-	| _BOOL {}
-	| _COMPLEX {
+	VOID {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| CHAR {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
 
+	}
+	| SHORT {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| INT {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| LONG {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| FLOAT {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| DOUBLE {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| SIGNED {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| UNSIGNED {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| _BOOL {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| _COMPLEX {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
 	}
 	;
 
 declarator:
 	direct_declarator {
-
+		$$ = $1;
 	}
 	;
 
 direct_declarator:
 	IDENT {
-
+		struct astnode *n = astnode_alloc(AST_ident);
+		strncpy(n->u.ident.name, $1, 1024);
+		n->next_node = NULL;
+		if(front == NULL) {
+			front = n;
+		}
+		if(end == NULL) {
+			end = n;
+		}
+		else {
+			end->next_node = n;
+			end = n;
+		}
+		$$ = n;
 	}
 	;
 
@@ -725,5 +791,6 @@ yyerror(char *s){
 int main(){
 	printf(">>>>>>>>>>>>\n");
 	//yydebug=1;
+	curr_scope = sym_table_alloc(FILE_SCOPE);
 	return yyparse();
 }

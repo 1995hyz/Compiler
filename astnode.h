@@ -10,10 +10,12 @@
 #define AST_argu 7
 #define AST_ternary 8
 
+#define AST_scaler 9
+
 #define TAG 9
 #define LABEL 10
 #define MEMBER 11
-#define ELSE 12
+#define ANYELSE 12
 
 extern int yylineno;
 struct astnode;
@@ -37,6 +39,7 @@ struct astnode_num {
 struct astnode_ident {
 	int node_type;
 	char name[1024];
+	struct astnode* next;
 };
 
 struct astnode_string {
@@ -66,12 +69,8 @@ struct astnode_ternary {
 	struct astnode *third;
 };
 
-struct astnode_var {
-	int name_space;
-	int storage_class;
-	char name[1024];
-	int offset;
-	struct astnode *next;
+struct astnode_scaler {
+	int scaler_type;
 };
 
 struct astnode {
@@ -86,12 +85,14 @@ struct astnode {
 		struct astnode_argu argu;
 		struct astnode_ternary tern;
 
-		struct astnode_var var;
+		struct astnode_scaler scaler;
 	} u;
+	struct astnode *next_node;
 };
 
 struct astnode* astnode_alloc(int node_type);
 void print_tree(struct astnode*, int indent);
 void tree_free(struct astnode*);
+void astnode_link(struct astnode *head, struct astnode *tail, struct astnode *new_insert);
 
 #endif //_ASTNODE_H

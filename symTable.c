@@ -74,7 +74,6 @@ int print_entry(struct sym_entry* entry) {
 	int indent = 0;
 	struct astnode *node = entry->first_node;
 	while(node != NULL){
-		printf("****\n");
 		int curr_indent = indent;
 		printf("%*\t", indent);
 		int node_type = node->node_type;

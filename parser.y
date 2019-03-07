@@ -686,10 +686,10 @@ init_declarator_list:
 			case AST_ident: {
 				struct sym_entry *n = sym_entry_alloc(VAR_TYPE, $1->u.ident.name, curr_scope, NULL);
 				int i = insert_entry(curr_scope, n);
-				n->first_node = $1->next_node;
+				astnode_link(front, end, $1);
 				astnode_link(front, end, $<astnode_p>0);
+				n->first_node = $1->next_node;
 				free($1);
-				//printf("%d\n", $<astnode_p>0->u.scaler.scaler_type);
 				print_entry(n);
 				break;
 			}

@@ -679,17 +679,23 @@ declaration_specifiers:
 	type_specifier {
 		$$ = $1;
 	}
+	| type_specifier declaration_specifiers {
+		printf("!!!!!!\n");
+	}
 	;
 
 init_declarator_list:
 	declarator {
-		astnode_link(front, end, $1);
-		astnode_link(front, end, $<astnode_p>0);
-		struct sym_entry *n = add_entry($1, curr_scope);
+		astnode_link(&front, &end, $1);
+		astnode_link(&front, &end, $<astnode_p>0);
+		struct sym_entry *n = add_entry(front, curr_scope);
 		print_result(file_name, yylineno, n);
 	}
 	| init_declarator_list ',' declarator {
-
+		astnode_link(&front, &end, $3);
+		astnode_link(&front, &end, $<astnode_p>0);
+		struct sym_entry *n = add_entry($3, curr_scope);
+		print_result(file_name, yylineno, n);
 	}
 	;
 
@@ -762,17 +768,6 @@ direct_declarator:
 	IDENT {
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, $1, 1024);
-		n->next_node = NULL;
-		if(front == NULL) {
-			front = n;
-		}
-		if(end == NULL) {
-			end = n;
-		}
-		else {
-			end->next_node = n;
-			end = n;
-		}
 		$$ = n;
 	}
 	;

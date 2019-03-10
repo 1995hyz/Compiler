@@ -93,6 +93,6 @@ struct astnode {
 struct astnode* astnode_alloc(int node_type);
 void print_tree(struct astnode*, int indent);
 void tree_free(struct astnode*);
-void astnode_link(struct astnode *head, struct astnode *tail, struct astnode *new_insert);
+void astnode_link(struct astnode **head, struct astnode **tail, struct astnode *new_insert);
 
 #endif //_ASTNODE_H

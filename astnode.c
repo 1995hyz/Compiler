@@ -10,19 +10,23 @@ struct astnode* astnode_alloc(int type){
 		exit(1);
 	}
 	new_node -> node_type = type;
+	new_node -> next_node = NULL;
 	return new_node;
 }
 
-void astnode_link(struct astnode* head, struct astnode* tail, struct astnode* new_insert) {
-	if(head == NULL) {
-		head = new_insert;
+void astnode_link(struct astnode** head, struct astnode** tail, struct astnode* new_insert) {
+	if(*head == NULL) {
+		*head = new_insert;
 	}
-	if(tail == NULL) {
-		tail = new_insert;
+	if(*tail == NULL) {
+		*tail = new_insert;
 	}
 	else {
-		tail->next_node = new_insert;
-		tail = new_insert;
+		(*tail)->next_node = new_insert;
+		*tail = new_insert;
+	}
+	while((*tail)->next_node != NULL) {
+		*tail = (*tail)->next_node;	//Pay attention to potential infinite loop here.
 	}
 }
 

@@ -9,4 +9,4 @@ debug:	scanner.l parser.y astnode.h
 	gcc -g -o $@ parser.tab.c lex.yy.c astnode.c symTable.c
 
 clean:
-	rm -f test lex.yy.c parser.tab.h parser.tab.c parser.output
+	rm -f test lex.yy.c parser.tab.h parser.tab.c parser.output debug

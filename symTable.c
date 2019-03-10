@@ -124,14 +124,13 @@ int print_result(char* file, int lineno, struct sym_entry* entry) {
 	return 0;
 }
 
-struct sym_entry* add_entry(struct astnode* astnode, struct sym_table *curr_scope){
-	switch(astnode->node_type) {
+struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope){
+	switch(node->node_type) {
 		case AST_ident: {
-			struct sym_entry *n = sym_entry_alloc(VAR_TYPE, astnode->u.ident.name, curr_scope, NULL);
+			struct sym_entry *n = sym_entry_alloc(VAR_TYPE, node->u.ident.name, curr_scope, NULL);
 			int i = insert_entry(curr_scope, n);
-			n->first_node = astnode->next_node;
-			free(astnode);
-			//print_result(file_name, yylineno, n);
+			n->first_node = node->next_node;
+			free(node);
 			return n;
 		}
 	}

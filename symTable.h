@@ -42,5 +42,7 @@ struct sym_entry {
 struct sym_table* sym_table_alloc(int scope_type);
 struct sym_entry* sym_entry_alloc(int entry_type, char* name, struct sym_table *curr_table, struct sym_entry *next);
 int search_ident(struct sym_table *curr_table, char *ident);
+int print_result(char* file, int lineno, struct sym_entry* entry);
+struct sym_entry* add_entry(struct astnode* astnode, struct sym_table *curr_scope);
 
 #endif //_SYMTABLE_H

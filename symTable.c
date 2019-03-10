@@ -75,7 +75,7 @@ int print_entry(struct sym_entry* entry) {
 	struct astnode *node = entry->first_node;
 	while(node != NULL){
 		int curr_indent = indent;
-		printf("%*\t", indent);
+		printf("\t", indent);
 		int node_type = node->node_type;
 		switch(node_type){
 			case AST_scaler: {
@@ -92,5 +92,48 @@ int print_entry(struct sym_entry* entry) {
 		node = node -> next_node;
 		indent = indent + 1;	
 	}
+}
 
+int print_scope(struct sym_entry* entry) {
+	switch(entry->curr_table->scope_type) {
+		case FILE_SCOPE: {
+			printf("[in global scope starting at ***]");
+			break;
+		}
+		default: {
+			printf("****Error: Current scope undefined.****");
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int print_result(char* file, int lineno, struct sym_entry* entry) {
+	switch(entry->entry_type) {
+		case VAR_TYPE: {
+			printf("%s is defined at %s:%d ", entry->name, file, lineno);
+			print_scope(entry);
+			printf("as a variable with stgclass *** of type:\n");
+			print_entry(entry);
+			break;
+		}
+		default: {
+			printf("****Error: Current entry type undefined.****\n");
+		}
+	}
+	return 0;
+}
+
+struct sym_entry* add_entry(struct astnode* astnode, struct sym_table *curr_scope){
+	switch(astnode->node_type) {
+		case AST_ident: {
+			struct sym_entry *n = sym_entry_alloc(VAR_TYPE, astnode->u.ident.name, curr_scope, NULL);
+			int i = insert_entry(curr_scope, n);
+			n->first_node = astnode->next_node;
+			free(astnode);
+			//print_result(file_name, yylineno, n);
+			return n;
+		}
+	}
+	return NULL;
 }

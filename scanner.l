@@ -3,6 +3,7 @@
 #include "parser.tab.h"
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #define SKIP 4040
 #define REAL 4043
 
@@ -308,12 +309,13 @@ void to_upper(char* dest, char* src){
 	char* addr = NULL;
 	while(*src != '\0'){
 		char upper;
-		if(*src > 96){
+		/*if(*src > 96){
 			upper = (char) *src - 32;
 		}
 		else{
 			upper = *src;
-		}
+		}*/
+		upper = toupper(*src);
 		*dest = upper;
 		dest++;
 		src++;

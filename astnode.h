@@ -11,6 +11,7 @@
 #define AST_ternary 8
 
 #define AST_scaler 9
+#define AST_pointer 10
 
 #define TAG 9
 #define LABEL 10
@@ -73,6 +74,10 @@ struct astnode_scaler {
 	int scaler_type;
 };
 
+struct astnode_pointer {
+	;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -86,6 +91,7 @@ struct astnode {
 		struct astnode_ternary tern;
 
 		struct astnode_scaler scaler;
+		struct astnode_pointer pointer;
 	} u;
 	struct astnode *next_node;
 };

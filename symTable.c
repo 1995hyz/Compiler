@@ -90,6 +90,10 @@ int print_entry(struct sym_entry* entry) {
 				}
 				break;
 			}
+			case AST_pointer: {
+				printf("pointer to\n");
+				break;
+			}
 			default: {
 				printf("Error: Unknown astnode type.\n");
 			}

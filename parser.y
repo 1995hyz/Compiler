@@ -132,6 +132,10 @@ extern char file_name[1024];
 %type <astnode_p> declarator;
 %type <astnode_p> direct_declarator;
 %type <astnode_p> statement;
+%type <astnode_p> pointer;
+%type <astnode_p> type_qualifier_list;
+%type <astnode_p> struct_or_union_specifier;
+%type <astnode_p> struct_or_union;
 
 %%
 decl_or_stmt:
@@ -695,7 +699,7 @@ declaration_specifiers:
 
 init_declarator_list:
 	declarator {
-		astnode_link(&front, &end, $1);
+		//astnode_link(&front, &end, $1);
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope);
 		print_result(file_name, yylineno, n);
@@ -703,7 +707,7 @@ init_declarator_list:
 		end = NULL;
 	}
 	| init_declarator_list ',' declarator {
-		astnode_link(&front, &end, $3);
+		//astnode_link(&front, &end, $3);
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope);
 		print_result(file_name, yylineno, n);
@@ -793,13 +797,52 @@ declarator:
 	direct_declarator {
 		$$ = $1;
 	}
+	| pointer direct_declarator {
+		struct astnode *n = astnode_alloc(AST_pointer);
+		astnode_link(&front, &end, n);
+		$$ = front;
+	}
 	;
 
 direct_declarator:
 	IDENT {
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, $1, 1024);
-		$$ = n;
+		astnode_link(&front, &end, n);
+		$$ = front;
+	}
+	;
+
+pointer:
+	'*' {
+		//struct astnode *n = astnode_alloc(AST_pointer);
+		//astnode_link(&front, &end, n);
+	}
+	| '*' type_qualifier_list {
+		//struct astnode *n = astnode_alloc(AST_pointer);
+		//astnode_link(&front, &end, n);
+	}
+	;
+
+type_qualifier_list:
+	type_qualifier {
+		astnode_link(&front, &end, $1);
+		$$ = $1;
+	}
+	;
+
+struct_or_union_specifier:
+	struct_or_union IDENT {
+
+	}
+	;
+
+struct_or_union:
+	STRUCT {
+
+	}
+	| UNION {
+	
 	}
 	;
 

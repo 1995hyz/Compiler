@@ -51,7 +51,7 @@ extern char file_name[1024];
 %token 	BREAK
 %token 	CASE
 %token <j> CHAR
-%token 	CONST
+%token <j> CONST
 %token 	CONTINUE
 %token 	DEFAULT
 %token 	DO
@@ -67,7 +67,7 @@ extern char file_name[1024];
 %token <j> INT
 %token <j> LONG
 %token 	REGISTER
-%token 	RESTRICT
+%token <j> RESTRICT
 %token 	RETURN
 %token <j> SHORT
 %token <j> SIGNED
@@ -79,7 +79,7 @@ extern char file_name[1024];
 %token 	UNION
 %token <j> UNSIGNED
 %token <j> VOID
-%token 	VOLATILE
+%token <j> VOLATILE
 %token 	WHILE
 %token <j> _BOOL
 %token <j> _COMPLEX
@@ -126,6 +126,7 @@ extern char file_name[1024];
 %type <astnode_p> assignment_expr;
 %type <astnode_p> declaration;
 %type <astnode_p> type_specifier;
+%type <astnode_p> type_qualifier;
 %type <astnode_p> init_declarator_list;
 %type <astnode_p> declaration_specifiers;
 %type <astnode_p> declarator;
@@ -680,7 +681,15 @@ declaration_specifiers:
 		$$ = $1;
 	}
 	| type_specifier declaration_specifiers {
-		printf("!!!!!!\n");
+		$1->next_node = $2;
+		$$ = $1;
+	}
+	| type_qualifier {
+		$$ = $1;
+	}
+	| type_qualifier declaration_specifiers {
+		$1->next_node = $2;
+		$$ = $1;
 	}
 	;
 
@@ -690,12 +699,16 @@ init_declarator_list:
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope);
 		print_result(file_name, yylineno, n);
+		front = NULL;
+		end = NULL;
 	}
 	| init_declarator_list ',' declarator {
 		astnode_link(&front, &end, $3);
 		astnode_link(&front, &end, $<astnode_p>0);
-		struct sym_entry *n = add_entry($3, curr_scope);
+		struct sym_entry *n = add_entry(front, curr_scope);
 		print_result(file_name, yylineno, n);
+		front = NULL;
+		end = NULL;
 	}
 	;
 
@@ -752,6 +765,24 @@ type_specifier:
 		$$ = n;
 	}
 	| _COMPLEX {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	;
+
+type_qualifier:
+	CONST {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| RESTRICT {
+		struct astnode *n = astnode_alloc(AST_scaler);
+		n->u.scaler.scaler_type = $1;
+		$$ = n;
+	}
+	| VOLATILE {
 		struct astnode *n = astnode_alloc(AST_scaler);
 		n->u.scaler.scaler_type = $1;
 		$$ = n;

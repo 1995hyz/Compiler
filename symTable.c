@@ -75,12 +75,17 @@ int print_entry(struct sym_entry* entry) {
 	struct astnode *node = entry->first_node;
 	while(node != NULL){
 		int curr_indent = indent;
-		printf("\t", indent);
+		printf(" ", indent);
 		int node_type = node->node_type;
 		switch(node_type){
 			case AST_scaler: {
 				switch(node->u.scaler.scaler_type) {
 					case INT: printf("INT\n"); break;
+					case LONG: printf("LONG\n"); break;
+					case UNSIGNED: printf("UNSIGNED\n"); break;
+					case CONST: printf("CONST\n"); break;
+					case RESTRICT: printf("RESTRICT\n"); break;
+					case VOLATILE: printf("VOLATILE\n"); break;
 					default: printf("Error: Unknown scaler type.\n");
 				}
 				break;

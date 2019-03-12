@@ -90,8 +90,16 @@ int print_entry(struct sym_entry* entry) {
 				}
 				break;
 			}
+			case AST_struct: {
+				printf("struct %s\n", node->u.stru.name);
+				break;
+			}
 			case AST_pointer: {
 				printf("pointer to\n");
+				break;
+			}
+			case AST_array: {
+				printf("array #%d\n", node->u.arr.num);
 				break;
 			}
 			default: {

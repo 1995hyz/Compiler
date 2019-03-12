@@ -16,6 +16,7 @@
 #define AST_pointer 10
 #define AST_struct 11
 #define AST_union 12
+#define AST_array 13
 
 #define TAG 9
 #define LABEL 10
@@ -84,11 +85,15 @@ struct astnode_pointer {
 };
 
 struct astnode_struct {
-	;
+	char name[1024];
 };
 
 struct astnode_union {
-	;
+	char name[1024];
+};
+
+struct astnode_array {
+	int num;
 };
 
 struct astnode {
@@ -107,6 +112,7 @@ struct astnode {
 		struct astnode_pointer pointer;
 		struct astnode_struct stru;
 		struct astnode_union uni;
+		struct astnode_array arr;
 	} u;
 	struct astnode *next_node;
 };

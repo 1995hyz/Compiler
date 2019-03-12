@@ -136,6 +136,7 @@ extern char file_name[1024];
 %type <astnode_p> type_qualifier_list;
 %type <astnode_p> struct_or_union_specifier;
 %type <astnode_p> struct_or_union;
+%type <astnode_p> struct_declaration_list;
 
 %%
 decl_or_stmt:
@@ -815,6 +816,25 @@ direct_declarator:
 		astnode_link(&front, &end, n);
 		$$ = front;
 	}
+	| '(' IDENT ')' {
+		struct astnode *n = astnode_alloc(AST_ident);
+		strncpy(n->u.ident.name, $2, 1024);
+		n->u.ident.ident_type = VAR_TYPE;
+		astnode_link(&front, &end, n);
+		$$ = front;
+	}
+	| direct_declarator '[' ']' {
+		struct astnode *n = astnode_alloc(AST_array);
+		n->u.arr.num = 0;
+		astnode_link(&front, &end, n);
+		$$ = front;
+	}
+	| direct_declarator '[' NUMBER ']' {
+		struct astnode *n = astnode_alloc(AST_array);
+		n->u.arr.num = $3;
+		astnode_link(&front, &end, n);
+		$$ = front;
+	}
 	;
 
 pointer:
@@ -842,21 +862,17 @@ type_qualifier_list:
 
 struct_or_union_specifier:
 	struct_or_union IDENT {
-		strncpy($1->u.ident.name, $2, 1024);
-		struct sym_entry *entry = sym_entry_alloc(STRUCT_TYPE, $2, curr_scope, NULL);
-		entry->e.table = sym_table_alloc(BLOCK_SCOPE);
-		entry->e.complete = 0;
+		strncpy($1->u.stru.name, $2, 1024);
 		$$ = $1;
 	}
-	| struct_or_union '{' struct_declaration_list '}' {
+	/*| struct_or_union '{' struct_declaration_list '}' {
 		
-	}
+	}*/
 	;
 
 struct_or_union:
 	STRUCT {
-		struct astnode *n = astnode_alloc(AST_ident);
-		n->u.ident.ident_type = STRUCT_TYPE;
+		struct astnode *n = astnode_alloc(AST_struct);
 		$$ = n;
 	}
 	| UNION {

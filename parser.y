@@ -773,6 +773,9 @@ type_specifier:
 		n->u.scaler.scaler_type = $1;
 		$$ = n;
 	}
+	| struct_or_union_specifier {
+		$$ = $1;
+	}
 	;
 
 type_qualifier:
@@ -798,8 +801,8 @@ declarator:
 		$$ = $1;
 	}
 	| pointer direct_declarator {
-		struct astnode *n = astnode_alloc(AST_pointer);
-		astnode_link(&front, &end, n);
+		//struct astnode *n = astnode_alloc(AST_pointer);
+		astnode_link(&front, &end, $1);
 		$$ = front;
 	}
 	;
@@ -808,6 +811,7 @@ direct_declarator:
 	IDENT {
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, $1, 1024);
+		n->u.ident.ident_type = VAR_TYPE;
 		astnode_link(&front, &end, n);
 		$$ = front;
 	}
@@ -815,12 +819,17 @@ direct_declarator:
 
 pointer:
 	'*' {
-		//struct astnode *n = astnode_alloc(AST_pointer);
-		//astnode_link(&front, &end, n);
+		struct astnode *n = astnode_alloc(AST_pointer);
+		$$ = n;
 	}
 	| '*' type_qualifier_list {
 		//struct astnode *n = astnode_alloc(AST_pointer);
 		//astnode_link(&front, &end, n);
+	}
+	| '*' pointer {
+		struct astnode *n = astnode_alloc(AST_pointer);
+		n->next_node = $2;
+		$$ = n;
 	}
 	;
 
@@ -833,13 +842,22 @@ type_qualifier_list:
 
 struct_or_union_specifier:
 	struct_or_union IDENT {
-
+		strncpy($1->u.ident.name, $2, 1024);
+		struct sym_entry *entry = sym_entry_alloc(STRUCT_TYPE, $2, curr_scope, NULL);
+		entry->e.table = sym_table_alloc(BLOCK_SCOPE);
+		entry->e.complete = 0;
+		$$ = $1;
+	}
+	| struct_or_union '{' struct_declaration_list '}' {
+		
 	}
 	;
 
 struct_or_union:
 	STRUCT {
-
+		struct astnode *n = astnode_alloc(AST_ident);
+		n->u.ident.ident_type = STRUCT_TYPE;
+		$$ = n;
 	}
 	| UNION {
 	

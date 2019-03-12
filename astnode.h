@@ -1,6 +1,8 @@
 #ifndef _ASTNODE_H
 #define _ASTNODE_H
 
+#include "symTable.h"
+
 #define AST_binop 1
 #define AST_unary 2
 #define AST_num 3
@@ -12,6 +14,8 @@
 
 #define AST_scaler 9
 #define AST_pointer 10
+#define AST_struct 11
+#define AST_union 12
 
 #define TAG 9
 #define LABEL 10
@@ -41,6 +45,7 @@ struct astnode_ident {
 	int node_type;
 	char name[1024];
 	struct astnode* next;
+	int ident_type;
 };
 
 struct astnode_string {
@@ -78,6 +83,14 @@ struct astnode_pointer {
 	;
 };
 
+struct astnode_struct {
+	;
+};
+
+struct astnode_union {
+	;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -92,6 +105,8 @@ struct astnode {
 
 		struct astnode_scaler scaler;
 		struct astnode_pointer pointer;
+		struct astnode_struct stru;
+		struct astnode_union uni;
 	} u;
 	struct astnode *next_node;
 };

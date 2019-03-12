@@ -9,6 +9,8 @@
 
 #define VAR_TYPE 5
 #define FUNC_TYPE 6
+#define STRUCT_TYPE 7
+#define MEMBER_TYPE 8
 
 struct sym_table {
 	int scope_type;
@@ -27,6 +29,11 @@ struct func_entry {
 	int complete;
 };
 
+struct struct_entry {
+	struct sym_table *table;
+	int complete;
+};
+
 struct sym_entry {
 	int entry_type;
 	char name[1024];
@@ -35,6 +42,7 @@ struct sym_entry {
 	union sym_entries {
 		struct var_entry var;
 		struct func_entry func;
+		struct struct_entry stru;
 	} e;
 	struct astnode *first_node;
 };

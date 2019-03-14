@@ -137,6 +137,10 @@ extern char file_name[1024];
 %type <astnode_p> struct_or_union_specifier;
 %type <astnode_p> struct_or_union;
 %type <astnode_p> struct_declaration_list;
+%type <astnode_p> struct_declaration;
+%type <astnode_p> specifier_qualifier_list;
+%type <astnode_p> struct_declarator_list;
+%type <astnode_p> struct_declarator;
 
 %%
 decl_or_stmt:
@@ -862,17 +866,61 @@ type_qualifier_list:
 
 struct_or_union_specifier:
 	struct_or_union IDENT {
+		curr_scope = curr_scope->parent_table;
 		strncpy($1->u.stru.name, $2, 1024);
+		struct astnode *n = astnode_alloc(AST_ident);
+		strncpy(n->u.ident.name, $2, 1024);
+		n->u.ident.ident_type = STRUCT_TYPE; //!!!!
+		struct sym_entry *new_entry = add_entry(n, curr_scope);
+		new_entry->e.stru.complete = 0;
 		$$ = $1;
 	}
-	/*| struct_or_union '{' struct_declaration_list '}' {
+	| struct_or_union '{' struct_declaration_list '}' {
 		
-	}*/
+	}
+	;
+
+struct_declaration_list:
+	struct_declaration {
+		$$ = $1;
+	}
+	;
+
+struct_declaration:
+	specifier_qualifier_list struct_declarator_list ';' {
+		
+	}
+	;
+
+specifier_qualifier_list:
+	type_specifier {
+		$$ = $1;
+	}
+	;
+
+struct_declarator_list:
+	struct_declarator {
+		astnode_link(&front, &end, $<astnode_p>0);
+		struct sym_entry *n = add_entry(front, curr_scope);
+		print_result(file_name, yylineno, n);
+		front = NULL;
+		end = NULL;
+		$$ = $1;
+	}
+	;
+
+struct_declarator:
+	declarator {
+		$$ = $1;
+	}
 	;
 
 struct_or_union:
 	STRUCT {
 		struct astnode *n = astnode_alloc(AST_struct);
+		struct sym_table *temp = curr_scope;
+		curr_scope = sym_table_alloc(BLOCK_SCOPE);
+		curr_scope->parent_table = temp;
 		$$ = n;
 	}
 	| UNION {

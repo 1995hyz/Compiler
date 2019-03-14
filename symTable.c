@@ -154,7 +154,7 @@ struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope){
 			return n;
 		}
 		case STRUCT_TYPE: {
-			struct sym_entry *n = sym_entry_alloc(STRUCT_TYPE, node->u.stru.name, curr_scope, NULL);
+			struct sym_entry *n = sym_entry_alloc(STRUCT_TYPE, node->u.ident.name, curr_scope, NULL);
 			int i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);

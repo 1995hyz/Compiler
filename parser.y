@@ -106,7 +106,8 @@ extern char file_name[1024];
 %left '[' ']'
 %left '(' ')'
 
-%start decl_or_stmt
+/*%start decl_or_stmt*/
+%start declaration_or_fndef;
 %type <astnode_p> expr;
 %type <astnode_p> additive_expr;
 %type <astnode_p> multipli_expr;
@@ -144,6 +145,29 @@ extern char file_name[1024];
 %type <astnode_p> struct_declarator;
 
 %%
+declaration_or_fndef: declaration
+	| function_definition
+	;
+
+function_definition:
+	declaration_specifiers declarator compound_statement {
+
+	}
+	;
+
+compound_statement:
+	'{' decl_or_stmt_list '}' {
+
+	}
+	;
+
+decl_or_stmt_list:
+	decl_or_stmt {}
+	| decl_or_stmt_list decl_or_stmt {
+
+	}
+	;
+
 decl_or_stmt:
 	declaration {}
 	| statement {
@@ -877,7 +901,8 @@ struct_or_union_specifier:
 		$$ = $1;
 	}
 	| struct_or_union '{' struct_declaration_list '}' {
-		
+		curr_scope = curr_scope->parent_table;
+		$$ = $1;
 	}
 	| struct_or_union IDENT '{' struct_declaration_list '}' {
 		struct sym_table *temp = curr_scope;
@@ -897,6 +922,9 @@ struct_declaration_list:
 	struct_declaration {
 		$$ = $1;
 	}
+	| struct_declaration_list struct_declaration {
+		$$ = $1;
+	}
 	;
 
 struct_declaration:
@@ -913,6 +941,14 @@ specifier_qualifier_list:
 
 struct_declarator_list:
 	struct_declarator {
+		astnode_link(&front, &end, $<astnode_p>0);
+		struct sym_entry *n = add_entry(front, curr_scope);
+		print_result(file_name, yylineno, n);
+		front = NULL;
+		end = NULL;
+		$$ = $1;
+	}
+	| struct_declarator_list ',' struct_declarator {
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope);
 		print_result(file_name, yylineno, n);

@@ -139,6 +139,7 @@ int print_result(char* file, int lineno, struct sym_entry* entry) {
 			break;
 		}
 		case STRUCT_TYPE: {
+			printf("struct/union %s definition at %s:%d", entry->name, file, lineno);
 			break;
 		}
 		case MEMBER_TYPE: {

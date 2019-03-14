@@ -6,6 +6,7 @@
 #define FUNC_SCOPE 2
 #define BLOCK_SCOPE 3
 #define PROTO_SCOPE 4
+#define STRUCT_SCOPE 5
 
 #define VAR_TYPE 5
 #define FUNC_TYPE 6

@@ -117,6 +117,10 @@ int print_scope(struct sym_entry* entry) {
 			printf("[in global scope starting at ***]");
 			break;
 		}
+		case STRUCT_SCOPE: {
+			printf("[in struct/union scope starting at ***]");
+			break;
+		}
 		default: {
 			printf("****Error: Current scope undefined.****");
 			return 1;
@@ -135,7 +139,14 @@ int print_result(char* file, int lineno, struct sym_entry* entry) {
 			break;
 		}
 		case STRUCT_TYPE: {
-
+			break;
+		}
+		case MEMBER_TYPE: {
+			printf("%s is defined at %s:%d ", entry->name, file, lineno);
+			print_scope(entry);
+			printf("as a field of struct/union %s of type:\n", entry->name);
+			print_entry(entry);
+			break;
 		}
 		default: {
 			printf("****Error: Current entry type undefined.****\n");
@@ -155,6 +166,13 @@ struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope){
 		}
 		case STRUCT_TYPE: {
 			struct sym_entry *n = sym_entry_alloc(STRUCT_TYPE, node->u.ident.name, curr_scope, NULL);
+			int i = insert_entry(curr_scope, n);
+			n->first_node = node->next_node;
+			free(node);
+			return n;
+		}
+		case MEMBER_TYPE: {
+			struct sym_entry *n = sym_entry_alloc(MEMBER_TYPE, node->u.ident.name, curr_scope, NULL);
 			int i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);

@@ -149,7 +149,7 @@ _Imaginary	{yylval.s = yytext; return _IMAGINARY;}
 =	{yylval.i='='; return '=';}
 
 ([_a-zA-Z])([_a-zA-Z0-9])*	{
-		yylval.s = yytext;
+		strncpy(yylval.arr, yytext, 1024);
 		return IDENT;
 		}
 

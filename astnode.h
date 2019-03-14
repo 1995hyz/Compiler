@@ -86,6 +86,7 @@ struct astnode_pointer {
 
 struct astnode_struct {
 	char name[1024];
+	struct sym_table *table;
 };
 
 struct astnode_union {

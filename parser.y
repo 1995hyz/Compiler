@@ -17,12 +17,13 @@ extern char file_name[1024];
 %union {
 	struct astnode* astnode_p;
 	char *s;
+	char arr[1024];
 	long long int i;
 	int j;
 }
 
 %token <i> NUMBER
-%token <s> IDENT
+%token <arr> IDENT
 %token <i> CHARLIT
 %token <s> STRING
 %token 	INDSEL
@@ -878,6 +879,18 @@ struct_or_union_specifier:
 	| struct_or_union '{' struct_declaration_list '}' {
 		
 	}
+	| struct_or_union IDENT '{' struct_declaration_list '}' {
+		struct sym_table *temp = curr_scope;
+		curr_scope = curr_scope->parent_table;
+		strncpy($1->u.stru.name, $2, 1024);
+		struct astnode *n = astnode_alloc(AST_ident);
+		strncpy(n->u.ident.name, $2, 1024);
+		n->u.ident.ident_type = STRUCT_TYPE; //!!!!
+		struct sym_entry *new_entry = add_entry(n, curr_scope);
+		new_entry->e.stru.complete = 1;
+		new_entry->e.stru.table = temp;
+		$$ = $1;
+	} 
 	;
 
 struct_declaration_list:
@@ -888,7 +901,7 @@ struct_declaration_list:
 
 struct_declaration:
 	specifier_qualifier_list struct_declarator_list ';' {
-		
+		$$ = $1;
 	}
 	;
 
@@ -911,7 +924,7 @@ struct_declarator_list:
 
 struct_declarator:
 	declarator {
-		$$ = $1;
+		front->u.ident.ident_type = MEMBER_TYPE;
 	}
 	;
 
@@ -919,7 +932,8 @@ struct_or_union:
 	STRUCT {
 		struct astnode *n = astnode_alloc(AST_struct);
 		struct sym_table *temp = curr_scope;
-		curr_scope = sym_table_alloc(BLOCK_SCOPE);
+		curr_scope = sym_table_alloc(STRUCT_SCOPE);
+		n->u.stru.table = curr_scope;
 		curr_scope->parent_table = temp;
 		$$ = n;
 	}

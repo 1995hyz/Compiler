@@ -18,7 +18,7 @@ union YYLVAL{
 char buf[1024];
 int counter;
 long long int line_num;
-char file_name[1024];
+char file_name[1024] = "<stdin>";
 char* num_type;
 
 %}

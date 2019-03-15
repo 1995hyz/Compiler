@@ -18,6 +18,7 @@ struct sym_table {
 	struct sym_table* parent_table;
 	struct sym_entry *first;
 	struct sym_entry *last;
+	int def_num;
 };
 
 struct var_entry {
@@ -46,12 +47,15 @@ struct sym_entry {
 		struct struct_entry stru;
 	} e;
 	struct astnode *first_node;
+	int def_num;
+	char def_file[1024];
 };
 
-struct sym_table* sym_table_alloc(int scope_type);
-struct sym_entry* sym_entry_alloc(int entry_type, char* name, struct sym_table *curr_table, struct sym_entry *next);
+struct sym_table* sym_table_alloc(int scope_type, int def_num);
+struct sym_entry* sym_entry_alloc(int entry_type, char* name, struct sym_table *curr_table, struct sym_entry *next, char *def_file, int def_num);
 int search_ident(struct sym_table *curr_table, char *ident);
-int print_result(char* file, int lineno, struct sym_entry* entry);
-struct sym_entry* add_entry(struct astnode* astnode, struct sym_table *curr_scope);
+int print_entry(struct sym_entry* entry);
+int print_table(struct sym_table* table);
+struct sym_entry* add_entry(struct astnode* astnode, struct sym_table *curr_scope, char *def_file, int def_num);
 
 #endif //_SYMTABLE_H

@@ -4,13 +4,14 @@
 #include "symTable.h"
 #include "parser.tab.h"
 
-struct sym_table* sym_table_alloc(int scope_type) {
+struct sym_table* sym_table_alloc(int scope_type, int def_num) {
 	struct sym_table *new_table = malloc(sizeof(struct sym_table));
 	if(!new_table){
 		fprintf(stderr, "out of space for sym table\n");
 		exit(1);
 	}
-	new_table -> scope_type = scope_type;
+	new_table->scope_type = scope_type;
+	new_table->def_num = def_num;
 	return new_table;
 }
 
@@ -38,7 +39,7 @@ int search_entry(struct sym_table* curr_table, char *ident) {
 	return 1;
 }
 
-struct sym_entry* sym_entry_alloc(int entry_type, char* name, struct sym_table* curr_table, struct sym_entry* next_entry) {
+struct sym_entry* sym_entry_alloc(int entry_type, char* name, struct sym_table* curr_table, struct sym_entry* next_entry, char *def_file, int def_num) {
 	struct sym_entry *new_entry = malloc(sizeof(struct sym_entry));
 	if(!new_entry) {
 		fprintf(stderr, "out of space for sym entry\n");
@@ -48,6 +49,8 @@ struct sym_entry* sym_entry_alloc(int entry_type, char* name, struct sym_table* 
 	strncpy(new_entry->name, name, 1024);
 	new_entry->curr_table = curr_table;
 	new_entry->next = next_entry;
+	strncpy(new_entry->def_file, def_file, 1024);
+	new_entry->def_num =  def_num;
 	return new_entry;
 }
 
@@ -70,7 +73,7 @@ int insert_entry(struct sym_table* curr_table, struct sym_entry* new_entry) {
 	return 0; //Succesfully added the entry
 }
 
-int print_entry(struct sym_entry* entry) {
+int trace_entry(struct sym_entry* entry) {
 	int indent = 0;
 	struct astnode *node = entry->first_node;
 	while(node != NULL){
@@ -80,6 +83,8 @@ int print_entry(struct sym_entry* entry) {
 		switch(node_type){
 			case AST_scaler: {
 				switch(node->u.scaler.scaler_type) {
+					case CHAR: printf("CHAR\n"); break;
+					case SHORT: printf("SHORT\n"); break;
 					case INT: printf("INT\n"); break;
 					case LONG: printf("LONG\n"); break;
 					case UNSIGNED: printf("UNSIGNED\n"); break;
@@ -114,11 +119,11 @@ int print_entry(struct sym_entry* entry) {
 int print_scope(struct sym_entry* entry) {
 	switch(entry->curr_table->scope_type) {
 		case FILE_SCOPE: {
-			printf("[in global scope starting at ***]");
+			printf("[in global scope starting at %d]", entry->def_num);
 			break;
 		}
 		case STRUCT_SCOPE: {
-			printf("[in struct/union scope starting at ***]");
+			printf("[in struct/union scope starting at %d]", entry->def_num);
 			break;
 		}
 		default: {
@@ -129,24 +134,28 @@ int print_scope(struct sym_entry* entry) {
 	return 0;
 }
 
-int print_result(char* file, int lineno, struct sym_entry* entry) {
+int print_entry(struct sym_entry* entry) {
 	switch(entry->entry_type) {
 		case VAR_TYPE: {
-			printf("%s is defined at %s:%d ", entry->name, file, lineno);
+			printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
 			print_scope(entry);
 			printf("as a variable with stgclass *** of type:\n");
-			print_entry(entry);
+			trace_entry(entry);
 			break;
 		}
 		case STRUCT_TYPE: {
-			printf("struct/union %s definition at %s:%d", entry->name, file, lineno);
+			printf("struct/union %s definition at %s:%d {\n", entry->name, entry->def_file, entry->def_num);
+			if(entry->e.stru.complete == 1) {
+				print_table(entry->e.stru.table);
+				printf("}\n");
+			}
 			break;
 		}
 		case MEMBER_TYPE: {
-			printf("%s is defined at %s:%d ", entry->name, file, lineno);
+			printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
 			print_scope(entry);
 			printf("as a field of struct/union %s of type:\n", entry->name);
-			print_entry(entry);
+			trace_entry(entry);
 			break;
 		}
 		default: {
@@ -156,24 +165,36 @@ int print_result(char* file, int lineno, struct sym_entry* entry) {
 	return 0;
 }
 
-struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope){
+int print_table(struct sym_table* table) {
+	int counter;
+	counter = 0;
+	struct sym_entry *n = table->first;
+	while(n != NULL) {
+		print_entry(n);
+		counter = counter + 1;
+		n = n->next;
+	}
+	return counter;
+}
+
+struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope, char *def_file, int def_num){
 	switch(node->u.ident.ident_type) {
 		case VAR_TYPE: {
-			struct sym_entry *n = sym_entry_alloc(VAR_TYPE, node->u.ident.name, curr_scope, NULL);
+			struct sym_entry *n = sym_entry_alloc(VAR_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
 			int i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);
 			return n;
 		}
 		case STRUCT_TYPE: {
-			struct sym_entry *n = sym_entry_alloc(STRUCT_TYPE, node->u.ident.name, curr_scope, NULL);
+			struct sym_entry *n = sym_entry_alloc(STRUCT_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
 			int i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);
 			return n;
 		}
 		case MEMBER_TYPE: {
-			struct sym_entry *n = sym_entry_alloc(MEMBER_TYPE, node->u.ident.name, curr_scope, NULL);
+			struct sym_entry *n = sym_entry_alloc(MEMBER_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
 			int i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);

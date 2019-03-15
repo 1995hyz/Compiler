@@ -145,7 +145,10 @@ extern char file_name[1024];
 %type <astnode_p> struct_declarator;
 
 %%
-declaration_or_fndef: declaration
+declaration_or_fndef: decl_or_stmt_list {
+		printf("*********\n");
+		print_table(curr_scope);
+	}
 	| function_definition
 	;
 
@@ -731,16 +734,16 @@ init_declarator_list:
 	declarator {
 		//astnode_link(&front, &end, $1);
 		astnode_link(&front, &end, $<astnode_p>0);
-		struct sym_entry *n = add_entry(front, curr_scope);
-		print_result(file_name, yylineno, n);
+		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+		print_entry(n);
 		front = NULL;
 		end = NULL;
 	}
 	| init_declarator_list ',' declarator {
 		//astnode_link(&front, &end, $3);
 		astnode_link(&front, &end, $<astnode_p>0);
-		struct sym_entry *n = add_entry(front, curr_scope);
-		print_result(file_name, yylineno, n);
+		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+		print_entry(n);
 		front = NULL;
 		end = NULL;
 	}
@@ -896,7 +899,7 @@ struct_or_union_specifier:
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, $2, 1024);
 		n->u.ident.ident_type = STRUCT_TYPE; //!!!!
-		struct sym_entry *new_entry = add_entry(n, curr_scope);
+		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
 		new_entry->e.stru.complete = 0;
 		$$ = $1;
 	}
@@ -911,7 +914,7 @@ struct_or_union_specifier:
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, $2, 1024);
 		n->u.ident.ident_type = STRUCT_TYPE; //!!!!
-		struct sym_entry *new_entry = add_entry(n, curr_scope);
+		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
 		new_entry->e.stru.complete = 1;
 		new_entry->e.stru.table = temp;
 		$$ = $1;
@@ -942,16 +945,16 @@ specifier_qualifier_list:
 struct_declarator_list:
 	struct_declarator {
 		astnode_link(&front, &end, $<astnode_p>0);
-		struct sym_entry *n = add_entry(front, curr_scope);
-		print_result(file_name, yylineno, n);
+		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+		print_entry(n);
 		front = NULL;
 		end = NULL;
 		$$ = $1;
 	}
 	| struct_declarator_list ',' struct_declarator {
 		astnode_link(&front, &end, $<astnode_p>0);
-		struct sym_entry *n = add_entry(front, curr_scope);
-		print_result(file_name, yylineno, n);
+		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+		print_entry(n);
 		front = NULL;
 		end = NULL;
 		$$ = $1;
@@ -968,7 +971,7 @@ struct_or_union:
 	STRUCT {
 		struct astnode *n = astnode_alloc(AST_struct);
 		struct sym_table *temp = curr_scope;
-		curr_scope = sym_table_alloc(STRUCT_SCOPE);
+		curr_scope = sym_table_alloc(STRUCT_SCOPE, yylineno);
 		n->u.stru.table = curr_scope;
 		curr_scope->parent_table = temp;
 		$$ = n;
@@ -988,6 +991,6 @@ yyerror(char *s){
 int main(){
 	printf(">>>>>>>>>>>>\n");
 	//yydebug=1;
-	curr_scope = sym_table_alloc(FILE_SCOPE);
+	curr_scope = sym_table_alloc(FILE_SCOPE, yylineno);
 	return yyparse();
 }

@@ -11,7 +11,8 @@
 #define VAR_TYPE 5
 #define FUNC_TYPE 6
 #define STRUCT_TYPE 7
-#define MEMBER_TYPE 8
+#define UNION_TYPE 8
+#define MEMBER_TYPE 9
 
 struct sym_table {
 	int scope_type;
@@ -23,7 +24,7 @@ struct sym_table {
 
 struct var_entry {
 	int storage_class;
-	int offset;
+	//int offset;
 };
 
 struct func_entry {
@@ -32,6 +33,11 @@ struct func_entry {
 };
 
 struct struct_entry {
+	struct sym_table *table;
+	int complete;
+};
+
+struct union_entry {
 	struct sym_table *table;
 	int complete;
 };
@@ -45,6 +51,7 @@ struct sym_entry {
 		struct var_entry var;
 		struct func_entry func;
 		struct struct_entry stru;
+		struct union_entry uni;
 	} e;
 	struct astnode *first_node;
 	int def_num;

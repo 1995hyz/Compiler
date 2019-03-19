@@ -156,6 +156,7 @@ function_definition:
 	declaration_specifiers declarator '{' {
 		astnode_link(&front, &end, $1);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+		n->e.func.complete = 1;
 		print_entry(n, 0);
 		front = NULL;
 		end = NULL;
@@ -740,7 +741,6 @@ declaration_specifiers:
 
 init_declarator_list:
 	declarator {
-		//astnode_link(&front, &end, $1);
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
 		print_entry(n, 0);
@@ -748,7 +748,6 @@ init_declarator_list:
 		end = NULL;
 	}
 	| init_declarator_list ',' declarator {
-		//astnode_link(&front, &end, $3);
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
 		print_entry(n, 0);
@@ -821,19 +820,19 @@ type_specifier:
 
 type_qualifier:
 	CONST {
-		struct astnode *n = astnode_alloc(AST_scaler);
+		/*struct astnode *n = astnode_alloc(AST_scaler);
 		n->u.scaler.scaler_type = $1;
-		$$ = n;
+		$$ = n;*/
 	}
 	| RESTRICT {
-		struct astnode *n = astnode_alloc(AST_scaler);
+		/*struct astnode *n = astnode_alloc(AST_scaler);
 		n->u.scaler.scaler_type = $1;
-		$$ = n;
+		$$ = n;*/
 	}
 	| VOLATILE {
-		struct astnode *n = astnode_alloc(AST_scaler);
+		/*struct astnode *n = astnode_alloc(AST_scaler);
 		n->u.scaler.scaler_type = $1;
-		$$ = n;
+		$$ = n;*/
 	}
 	;
 
@@ -887,43 +886,58 @@ pointer:
 		$$ = n;
 	}
 	| '*' type_qualifier_list {
-		//struct astnode *n = astnode_alloc(AST_pointer);
-		//astnode_link(&front, &end, n);
+		struct astnode *n = astnode_alloc(AST_pointer);
+		$$ = n;
 	}
 	| '*' pointer {
 		struct astnode *n = astnode_alloc(AST_pointer);
 		n->next_node = $2;
 		$$ = n;
 	}
+	| '*' type_qualifier_list pointer {
+		struct astnode *n = astnode_alloc(AST_pointer);
+		n->next_node = $3;
+		$$ = n;
+	}
 	;
 
 type_qualifier_list:
 	type_qualifier {
-		astnode_link(&front, &end, $1);
+		//astnode_link(&front, &end, $1);
 		$$ = $1;
+	}
+	| type_qualifier_list type_qualifier {
+
 	}
 	;
 
 struct_or_union_specifier:
 	struct_or_union IDENT {
-		//curr_scope = curr_scope->parent_table;
-		//exit_scope();
 		strncpy($1->u.stru.name, $2, 1024);
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, $2, 1024);
-		n->u.ident.ident_type = STRUCT_TYPE; //!!!!
+		if ($1->node_type == AST_struct) {
+			n->u.ident.ident_type = STRUCT_TYPE;
+		}
+		else {
+			n->u.ident.ident_type = UNION_TYPE;
+		}
 		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
 		new_entry->e.stru.complete = 0;
 		$$ = $1;
 	}
 	| struct_or_union {enter_scope(STRUCT_SCOPE);} '{' struct_declaration_list '}' {
-		//curr_scope = curr_scope->parent_table;
 		struct sym_table *temp = curr_scope;
 		exit_scope();
 		strncpy($1->u.stru.name, "", 1024);
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, "", 1024);
-		n->u.ident.ident_type = STRUCT_TYPE; //!!!!
+		if ($1->node_type == AST_struct) {
+			n->u.ident.ident_type = STRUCT_TYPE;
+		}
+		else {
+			n->u.ident.ident_type = UNION_TYPE;
+		}
 		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
 		new_entry->e.stru.complete = 1;
 		new_entry->e.stru.table = temp;
@@ -933,12 +947,16 @@ struct_or_union_specifier:
 	}
 	| struct_or_union IDENT {enter_scope(STRUCT_SCOPE);} '{' struct_declaration_list '}' {
 		struct sym_table *temp = curr_scope;
-		//curr_scope = curr_scope->parent_table;
 		exit_scope();
 		strncpy($1->u.stru.name, $2, 1024);
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, $2, 1024);
-		n->u.ident.ident_type = STRUCT_TYPE; //!!!!
+		if ($1->node_type == AST_struct) {
+			n->u.ident.ident_type = STRUCT_TYPE;
+		}
+		else {
+			n->u.ident.ident_type = UNION_TYPE;
+		}
 		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
 		new_entry->e.stru.complete = 1;
 		new_entry->e.stru.table = temp;
@@ -1006,6 +1024,8 @@ struct_or_union:
 		$$ = n;
 	}
 	| UNION {
+		struct astnode *n = astnode_alloc(AST_union);
+		$$ = n;
 	}
 	;
 

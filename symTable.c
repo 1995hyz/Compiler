@@ -96,11 +96,20 @@ int trace_entry(struct sym_entry* entry) {
 				break;
 			}
 			case AST_struct: {
-				if((node->u.stru.name)[0] == '\0') {
+				if((node->u.uni.name)[0] == '\0') {
 					printf("struct (anonymous)\n");
 				}
 				else {
-					printf("struct %s\n", node->u.stru.name);
+					printf("struct %s\n", node->u.uni.name);
+				}
+				break;
+			}
+			case AST_union: {
+				if((node->u.stru.name)[0] == '\0') {
+					printf("union (anonymous)\n");
+				}
+				else {
+					printf("union %s\n", node->u.stru.name);
 				}
 				break;
 			}
@@ -124,15 +133,15 @@ int trace_entry(struct sym_entry* entry) {
 int print_scope(struct sym_entry* entry) {
 	switch(entry->curr_table->scope_type) {
 		case FILE_SCOPE: {
-			printf("[in global scope starting at %d]", entry->def_num);
+			printf("[in global scope starting at %d] ", entry->def_num);
 			break;
 		}
 		case STRUCT_SCOPE: {
-			printf("[in struct/union scope starting at %d]", entry->def_num);
+			printf("[in struct/union scope starting at %d] ", entry->def_num);
 			break;
 		}
 		case FUNC_SCOPE: {
-			printf("[in function scope starting at %d]", entry->def_num);
+			printf("[in function scope starting at %d] ", entry->def_num);
 			break;
 		}
 		default: {
@@ -158,13 +167,30 @@ int print_entry(struct sym_entry* entry, int step_in) {
 			}
 			if(entry->e.stru.complete == 1) {
 				if((entry->name)[0] == '\0') {
-					printf("struct/union (anonymous) ");
+					printf("struct (anonymous) ");
 				}
 				else {
-					printf("struct/union %s ", entry->name);
+					printf("struct %s ", entry->name);
 				}
 				printf("definition at %s:%d {\n", entry->def_file, entry->def_num);
 				print_table(entry->e.stru.table);
+				printf("}\n");
+			}
+			break;
+		}
+		case UNION_TYPE: {
+			if(step_in == 1) {
+				break;
+			}
+			if(entry->e.uni.complete == 1) {
+				if((entry->name)[0] == '\0') {
+					printf("union (anonymous) ");
+				}
+				else {
+					printf("union %s ", entry->name);
+				}
+				printf("definition at %s:%d {\n", entry->def_file, entry->def_num);
+				print_table(entry->e.uni.table);
 				printf("}\n");
 			}
 			break;
@@ -218,6 +244,13 @@ struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope, 
 			free(node);
 			return n;
 		}
+		case UNION_TYPE: {
+			struct sym_entry *n = sym_entry_alloc(UNION_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
+			int i = insert_entry(curr_scope, n);
+			n->first_node = node->next_node;
+			free(node);
+			return n;
+		}
 		case MEMBER_TYPE: {
 			struct sym_entry *n = sym_entry_alloc(MEMBER_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
 			int i = insert_entry(curr_scope, n);
@@ -227,6 +260,7 @@ struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope, 
 		}
 		case FUNC_TYPE: {
 			struct sym_entry *n = sym_entry_alloc(FUNC_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
+			n->e.func.complete = 0;
 			int i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);

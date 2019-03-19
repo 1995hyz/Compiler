@@ -96,7 +96,12 @@ int trace_entry(struct sym_entry* entry) {
 				break;
 			}
 			case AST_struct: {
-				printf("struct %s\n", node->u.stru.name);
+				if((node->u.stru.name)[0] == '\0') {
+					printf("struct (anonymous)\n");
+				}
+				else {
+					printf("struct %s\n", node->u.stru.name);
+				}
 				break;
 			}
 			case AST_pointer: {
@@ -134,7 +139,7 @@ int print_scope(struct sym_entry* entry) {
 	return 0;
 }
 
-int print_entry(struct sym_entry* entry) {
+int print_entry(struct sym_entry* entry, int step_in) {
 	switch(entry->entry_type) {
 		case VAR_TYPE: {
 			printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
@@ -144,8 +149,17 @@ int print_entry(struct sym_entry* entry) {
 			break;
 		}
 		case STRUCT_TYPE: {
-			printf("struct/union %s definition at %s:%d {\n", entry->name, entry->def_file, entry->def_num);
+			if(step_in == 1) {
+				break;
+			}
 			if(entry->e.stru.complete == 1) {
+				if((entry->name)[0] == '\0') {
+					printf("struct/union (anonymous) ");
+				}
+				else {
+					printf("struct/union %s ", entry->name);
+				}
+				printf("definition at %s:%d {\n", entry->def_file, entry->def_num);
 				print_table(entry->e.stru.table);
 				printf("}\n");
 			}
@@ -170,7 +184,7 @@ int print_table(struct sym_table* table) {
 	counter = 0;
 	struct sym_entry *n = table->first;
 	while(n != NULL) {
-		print_entry(n);
+		print_entry(n, 1);
 		counter = counter + 1;
 		n = n->next;
 	}

@@ -146,8 +146,8 @@ extern char file_name[1024];
 
 %%
 declaration_or_fndef: decl_or_stmt_list {
-		printf("*********\n");
-		print_table(curr_scope);
+		//printf("*********\n");
+		//print_table(curr_scope);
 	}
 	| function_definition
 	;
@@ -735,7 +735,7 @@ init_declarator_list:
 		//astnode_link(&front, &end, $1);
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
-		print_entry(n);
+		print_entry(n, 0);
 		front = NULL;
 		end = NULL;
 	}
@@ -743,7 +743,7 @@ init_declarator_list:
 		//astnode_link(&front, &end, $3);
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
-		print_entry(n);
+		print_entry(n, 0);
 		front = NULL;
 		end = NULL;
 	}
@@ -894,7 +894,8 @@ type_qualifier_list:
 
 struct_or_union_specifier:
 	struct_or_union IDENT {
-		curr_scope = curr_scope->parent_table;
+		//curr_scope = curr_scope->parent_table;
+		//exit_scope();
 		strncpy($1->u.stru.name, $2, 1024);
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, $2, 1024);
@@ -903,13 +904,25 @@ struct_or_union_specifier:
 		new_entry->e.stru.complete = 0;
 		$$ = $1;
 	}
-	| struct_or_union '{' struct_declaration_list '}' {
-		curr_scope = curr_scope->parent_table;
+	| struct_or_union {enter_scope(STRUCT_SCOPE);} '{' struct_declaration_list '}' {
+		//curr_scope = curr_scope->parent_table;
+		struct sym_table *temp = curr_scope;
+		exit_scope();
+		strncpy($1->u.stru.name, "", 1024);
+		struct astnode *n = astnode_alloc(AST_ident);
+		strncpy(n->u.ident.name, "", 1024);
+		n->u.ident.ident_type = STRUCT_TYPE; //!!!!
+		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
+		new_entry->e.stru.complete = 1;
+		new_entry->e.stru.table = temp;
+		$1->u.stru.entry = new_entry;
+		print_entry(new_entry, 0);
 		$$ = $1;
 	}
-	| struct_or_union IDENT '{' struct_declaration_list '}' {
+	| struct_or_union IDENT {enter_scope(STRUCT_SCOPE);} '{' struct_declaration_list '}' {
 		struct sym_table *temp = curr_scope;
-		curr_scope = curr_scope->parent_table;
+		//curr_scope = curr_scope->parent_table;
+		exit_scope();
 		strncpy($1->u.stru.name, $2, 1024);
 		struct astnode *n = astnode_alloc(AST_ident);
 		strncpy(n->u.ident.name, $2, 1024);
@@ -917,6 +930,8 @@ struct_or_union_specifier:
 		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
 		new_entry->e.stru.complete = 1;
 		new_entry->e.stru.table = temp;
+		$1->u.stru.entry = new_entry;
+		print_entry(new_entry, 0);
 		$$ = $1;
 	} 
 	;
@@ -946,7 +961,6 @@ struct_declarator_list:
 	struct_declarator {
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
-		print_entry(n);
 		front = NULL;
 		end = NULL;
 		$$ = $1;
@@ -954,7 +968,6 @@ struct_declarator_list:
 	| struct_declarator_list ',' struct_declarator {
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
-		print_entry(n);
 		front = NULL;
 		end = NULL;
 		$$ = $1;
@@ -970,25 +983,34 @@ struct_declarator:
 struct_or_union:
 	STRUCT {
 		struct astnode *n = astnode_alloc(AST_struct);
-		struct sym_table *temp = curr_scope;
-		curr_scope = sym_table_alloc(STRUCT_SCOPE, yylineno);
-		n->u.stru.table = curr_scope;
-		curr_scope->parent_table = temp;
+		//struct sym_table *temp = curr_scope;
+		//curr_scope = sym_table_alloc(STRUCT_SCOPE, yylineno);
+		//n->u.stru.table = curr_scope;
+		//curr_scope->parent_table = temp;
 		$$ = n;
 	}
 	| UNION {
-	
 	}
 	;
 
 %%
 
-yyerror(char *s){
+yyerror(char *s) {
 	fprintf(stderr, " %d\terror: %s\n", yylineno, s);
 	exit(1);
 }
 
-int main(){
+enter_scope(int scope_type) {
+	struct sym_table *new_table = sym_table_alloc(scope_type, yylineno);
+	new_table->parent_table = curr_scope;
+	curr_scope = new_table;
+}
+
+exit_scope() {
+	curr_scope = curr_scope->parent_table;
+}
+
+int main() {
 	printf(">>>>>>>>>>>>\n");
 	//yydebug=1;
 	curr_scope = sym_table_alloc(FILE_SCOPE, yylineno);

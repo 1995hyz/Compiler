@@ -5,3 +5,5 @@ struct str1 {
 		char c;
 	} s2;
 } s1;
+
+int a;

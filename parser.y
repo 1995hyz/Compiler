@@ -154,13 +154,13 @@ declaration_or_fndef: decl_or_stmt_list {
 
 function_definition:
 	declaration_specifiers declarator compound_statement {
-
+		
 	}
 	;
 
 compound_statement:
-	'{' decl_or_stmt_list '}' {
-
+	'{' { enter_scope(BLOCK_SCOPE); } decl_or_stmt_list '}' {
+		exit_scope();
 	}
 	;
 
@@ -953,6 +953,10 @@ struct_declaration:
 
 specifier_qualifier_list:
 	type_specifier {
+		$$ = $1;
+	}
+	| type_specifier specifier_qualifier_list {
+		$1->next_node = $2;
 		$$ = $1;
 	}
 	;

@@ -153,8 +153,15 @@ declaration_or_fndef: decl_or_stmt_list {
 	;
 
 function_definition:
-	declaration_specifiers declarator compound_statement {
-		
+	declaration_specifiers declarator '{' {
+		astnode_link(&front, &end, $1);
+		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+		print_entry(n, 0);
+		front = NULL;
+		end = NULL;
+		enter_scope(FUNC_SCOPE);} 
+	decl_or_stmt_list '}' {
+		exit_scope();
 	}
 	;
 
@@ -180,6 +187,7 @@ decl_or_stmt:
 
 statement:
 	expr ';' {}
+	| compound_statement {}
 	;
 
 expr:	
@@ -865,6 +873,10 @@ direct_declarator:
 		struct astnode *n = astnode_alloc(AST_array);
 		n->u.arr.num = $3;
 		astnode_link(&front, &end, n);
+		$$ = front;
+	}
+	| direct_declarator '(' ')' {
+		$1->u.ident.ident_type = FUNC_TYPE;
 		$$ = front;
 	}
 	;

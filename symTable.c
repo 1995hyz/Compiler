@@ -131,6 +131,10 @@ int print_scope(struct sym_entry* entry) {
 			printf("[in struct/union scope starting at %d]", entry->def_num);
 			break;
 		}
+		case FUNC_SCOPE: {
+			printf("[in function scope starting at %d]", entry->def_num);
+			break;
+		}
 		default: {
 			printf("****Error: Current scope undefined.****");
 			return 1;
@@ -172,6 +176,13 @@ int print_entry(struct sym_entry* entry, int step_in) {
 			trace_entry(entry);
 			break;
 		}
+		case FUNC_TYPE: {
+			printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
+			print_scope(entry);
+			printf("as a extern function returning ");
+			trace_entry(entry);
+			break;
+		}
 		default: {
 			printf("****Error: Current entry type undefined.****\n");
 		}
@@ -209,6 +220,13 @@ struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope, 
 		}
 		case MEMBER_TYPE: {
 			struct sym_entry *n = sym_entry_alloc(MEMBER_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
+			int i = insert_entry(curr_scope, n);
+			n->first_node = node->next_node;
+			free(node);
+			return n;
+		}
+		case FUNC_TYPE: {
+			struct sym_entry *n = sym_entry_alloc(FUNC_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
 			int i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);

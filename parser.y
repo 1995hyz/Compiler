@@ -11,6 +11,7 @@ struct astnode* front;
 struct astnode* end;
 struct sym_table *curr_scope;
 extern char file_name[1024];
+int storage_class;
 
 %}
 
@@ -48,7 +49,7 @@ extern char file_name[1024];
 %token <s> ANDEQ
 %token <s> OREQ
 %token <s> XOREQ
-%token 	AUTO
+%token <j> AUTO
 %token 	BREAK
 %token 	CASE
 %token <j> CHAR
@@ -59,7 +60,7 @@ extern char file_name[1024];
 %token <j> DOUBLE
 %token 	ELSE
 %token 	ENUM
-%token 	EXTERN
+%token <j> EXTERN
 %token <j> FLOAT
 %token 	FOR
 %token 	GOTO
@@ -73,11 +74,11 @@ extern char file_name[1024];
 %token <j> SHORT
 %token <j> SIGNED
 %token <s> SIZEOF
-%token 	STATIC
-%token 	STRUCT
+%token <j> STATIC
+%token <j> STRUCT
 %token 	SWITCH
 %token 	TYPEDEF
-%token 	UNION
+%token <j> UNION
 %token <j> UNSIGNED
 %token <j> VOID
 %token <j> VOLATILE
@@ -156,6 +157,7 @@ function_definition:
 	declaration_specifiers declarator '{' {
 		astnode_link(&front, &end, $1);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+		add_storage_class(n);
 		n->e.func.complete = 1;
 		print_entry(n, 0);
 		front = NULL;
@@ -737,12 +739,34 @@ declaration_specifiers:
 		$1->next_node = $2;
 		$$ = $1;
 	}
+	| storage_class_specifier {
+		
+	}
+	| storage_class_specifier declaration_specifiers {
+		$$ = $2;
+	}
+	;
+
+storage_class_specifier: 
+	EXTERN {
+		storage_class = EXTERN_STORE;
+	}
+	| STATIC {
+		storage_class = STATIC_STORE;
+	}
+	| AUTO {
+		storage_class = AUTO_STORE;
+	}
+	| REGISTER {
+		storage_class = REGISTER_STORE;
+	}
 	;
 
 init_declarator_list:
 	declarator {
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+		add_storage_class(n);
 		print_entry(n, 0);
 		front = NULL;
 		end = NULL;
@@ -750,6 +774,7 @@ init_declarator_list:
 	| init_declarator_list ',' declarator {
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+		add_storage_class(n);
 		print_entry(n, 0);
 		front = NULL;
 		end = NULL;
@@ -1032,7 +1057,7 @@ struct_or_union:
 %%
 
 yyerror(char *s) {
-	fprintf(stderr, " %d\terror: %s\n", yylineno, s);
+	fprintf(stderr, "%s:%d\terror: %s\n", file_name, yylineno, s);
 	exit(1);
 }
 
@@ -1044,6 +1069,27 @@ enter_scope(int scope_type) {
 
 exit_scope() {
 	curr_scope = curr_scope->parent_table;
+}
+
+add_storage_class(struct sym_entry *entry) {
+	if(storage_class ==0){
+		if(entry->curr_table->scope_type == FILE_SCOPE) {
+			storage_class = EXTERN_STORE;
+		}
+		else if(entry->curr_table->scope_type == BLOCK_SCOPE || entry->curr_table->scope_type == FUNC_SCOPE){
+			storage_class = AUTO_STORE;
+		}
+		else {
+			yyerror("Eligible storage class declaration");
+		}
+	}
+	if(entry->entry_type == VAR_TYPE) {
+		entry->e.var.storage_class = storage_class;
+	}
+	else if (entry->entry_type == FUNC_TYPE) {
+		entry->e.func.storage_class = storage_class;
+	}
+	storage_class = 0;
 }
 
 int main() {

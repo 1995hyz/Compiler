@@ -157,7 +157,9 @@ int print_entry(struct sym_entry* entry, int step_in) {
 		case VAR_TYPE: {
 			printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
 			print_scope(entry);
-			printf("as a variable with stgclass *** of type:\n");
+			printf("as a variable with stgclass ");
+			print_storage_class(entry->e.var.storage_class);
+			printf(" of type:\n");
 			trace_entry(entry);
 			break;
 		}
@@ -205,12 +207,14 @@ int print_entry(struct sym_entry* entry, int step_in) {
 		case FUNC_TYPE: {
 			printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
 			print_scope(entry);
-			printf("as a extern function returning ");
+			printf("as a/an ");
+			print_storage_class(entry->e.func.storage_class);
+			printf("function returning ");
 			trace_entry(entry);
 			break;
 		}
 		default: {
-			printf("****Error: Current entry type undefined.****\n");
+			fprintf(stderr, "****Error: Current entry type undefined.****\n");
 		}
 	}
 	return 0;
@@ -226,6 +230,16 @@ int print_table(struct sym_table* table) {
 		n = n->next;
 	}
 	return counter;
+}
+
+print_storage_class(int storage_class) {
+	switch(storage_class) {
+		case AUTO_STORE: printf("auto "); break;
+		case EXTERN_STORE: printf("extern "); break;
+		case STATIC_STORE: printf("static "); break;
+		case REGISTER_STORE: printf("register "); break;
+		default: fprintf(stderr, "****Error: Current storage class type undefined.****\n");
+	}
 }
 
 struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope, char *def_file, int def_num){

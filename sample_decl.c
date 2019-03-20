@@ -7,3 +7,8 @@ struct str1 {
 } s1;
 
 int a;
+
+int f() {
+	int a;
+	static long *p;
+}

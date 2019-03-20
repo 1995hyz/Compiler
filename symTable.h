@@ -8,11 +8,16 @@
 #define PROTO_SCOPE 4
 #define STRUCT_SCOPE 5
 
-#define VAR_TYPE 5
-#define FUNC_TYPE 6
-#define STRUCT_TYPE 7
-#define UNION_TYPE 8
-#define MEMBER_TYPE 9
+#define VAR_TYPE 6
+#define FUNC_TYPE 7
+#define STRUCT_TYPE 8
+#define UNION_TYPE 9
+#define MEMBER_TYPE 10
+
+#define AUTO_STORE 11
+#define EXTERN_STORE 12
+#define STATIC_STORE 13
+#define REGISTER_STORE 14
 
 struct sym_table {
 	int scope_type;

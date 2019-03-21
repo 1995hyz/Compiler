@@ -108,7 +108,7 @@ int storage_class;
 %left '(' ')'
 
 /*%start decl_or_stmt*/
-%start declaration_or_fndef;
+%start decl_or_fndef_list;
 %type <astnode_p> expr;
 %type <astnode_p> additive_expr;
 %type <astnode_p> multipli_expr;
@@ -146,11 +146,18 @@ int storage_class;
 %type <astnode_p> struct_declarator;
 
 %%
-declaration_or_fndef: decl_or_stmt_list {
+
+decl_or_fndef_list: 
+	declaration_or_fndef {}
+	| decl_or_fndef_list declaration_or_fndef {} 
+	;
+ 
+declaration_or_fndef: 
+	declaration {
 		//printf("*********\n");
 		//print_table(curr_scope);
 	}
-	| function_definition
+	| function_definition {}
 	;
 
 function_definition:

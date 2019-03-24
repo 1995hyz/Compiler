@@ -15,28 +15,70 @@ struct sym_table* sym_table_alloc(int scope_type, int def_num) {
 	return new_table;
 }
 
-int search_entry(struct sym_table* curr_table, char *ident) {
+struct sym_entry* search_entry(struct sym_table *curr_table, char *ident, int entry_type) {
 	if(curr_table->first != NULL) {
 		struct sym_entry *curr_entry = curr_table->first;
-		int i = 1;
-		while((i=strcmp(curr_entry->name, ident)) != 0){
+		struct sym_entry *i = NULL;
+		while(1) {
+			if (strcmp(curr_entry->name, ident) == 0){
+				switch(entry_type) {
+					case MEMBER_TYPE: {
+						i = curr_entry;
+						break;
+					}
+					case STRUCT_TYPE: {
+						if(curr_entry->entry_type == STRUCT_TYPE || curr_entry->entry_type == UNION_TYPE) {
+							i = curr_entry;
+							break;
+						}
+					}
+					case UNION_TYPE: {
+						if(curr_entry->entry_type == STRUCT_TYPE || curr_entry->entry_type == UNION_TYPE) {
+							i = curr_entry;
+							break;
+						}
+					}
+					default: {
+						if(curr_entry->entry_type != STRUCT_TYPE && curr_entry->entry_type != UNION_TYPE && curr_entry->entry_type != MEMBER_TYPE) {
+							i = curr_entry;
+							break;
+						}
+					}
+				}
+				break;
+			}
 			curr_entry = curr_entry->next;
 			if(curr_entry == NULL){
 				break;
 			}
 		}
-		if(i == 0) {
-			return 0; // Find the ident.
-		}
-		else {
-			if(curr_table->parent_table != NULL) {
-				int j = search_entry(curr_table->parent_table, ident);
-				return j;
-			}
-			return 1;
+		if(i != NULL) {
+			return i; // Find the ident.
 		}
 	}
-	return 1;
+	else {
+		return NULL;
+	}
+}
+
+struct sym_entry* search_all(struct sym_table *curr_table, char *ident, int entry_type) {
+		struct sym_entry* i;
+		i = search_entry(curr_table, ident, entry_type);
+		if (i != NULL) {
+			return i;
+		}
+		else {
+			while(curr_table != NULL) {
+				if(curr_table->parent_table != NULL) {
+					i = search_entry(curr_table->parent_table, ident, entry_type);
+					if (i != NULL) {
+						return i;
+					}
+					curr_table = curr_table->parent_table;
+				}
+			}
+		}
+	return NULL;
 }
 
 struct sym_entry* sym_entry_alloc(int entry_type, char* name, struct sym_table* curr_table, struct sym_entry* next_entry, char *def_file, int def_num) {
@@ -54,10 +96,10 @@ struct sym_entry* sym_entry_alloc(int entry_type, char* name, struct sym_table* 
 	return new_entry;
 }
 
-int insert_entry(struct sym_table* curr_table, struct sym_entry* new_entry) {
-	int finding = search_entry(curr_table, new_entry->name);
-	if(finding == 0) {
-		return 1; //Entry already exist.
+struct sym_entry* insert_entry(struct sym_table* curr_table, struct sym_entry* new_entry) {
+	struct sym_entry *finding = search_entry(curr_table, new_entry->name, new_entry->entry_type);
+	if(finding != NULL) {
+		return finding; //Entry already exist.
 	}
 	else {
 		
@@ -70,7 +112,7 @@ int insert_entry(struct sym_table* curr_table, struct sym_entry* new_entry) {
 			curr_table->last = new_entry;
 		}
 	}
-	return 0; //Succesfully added the entry
+	return NULL; //Succesfully added the entry
 }
 
 int trace_entry(struct sym_entry* entry) {
@@ -246,28 +288,36 @@ struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope, 
 	switch(node->u.ident.ident_type) {
 		case VAR_TYPE: {
 			struct sym_entry *n = sym_entry_alloc(VAR_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
-			int i = insert_entry(curr_scope, n);
+			struct sym_entry *i = insert_entry(curr_scope, n);
+			if(i != NULL) {
+				fprintf(stderr, "****Error: Current entry %s has been defined at %s:%d ****\n", i->name, i->def_file, i->def_num);
+				exit(1);
+			}
 			n->first_node = node->next_node;
 			free(node);
 			return n;
 		}
 		case STRUCT_TYPE: {
 			struct sym_entry *n = sym_entry_alloc(STRUCT_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
-			int i = insert_entry(curr_scope, n);
+			struct sym_entry *i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);
 			return n;
 		}
 		case UNION_TYPE: {
 			struct sym_entry *n = sym_entry_alloc(UNION_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
-			int i = insert_entry(curr_scope, n);
+			struct sym_entry *i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);
 			return n;
 		}
 		case MEMBER_TYPE: {
 			struct sym_entry *n = sym_entry_alloc(MEMBER_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
-			int i = insert_entry(curr_scope, n);
+			struct sym_entry *i = insert_entry(curr_scope, n);
+			if(i != NULL) {
+				fprintf(stderr, "****Error: Current entry %s has been defined at %s:%d ****\n", i->name, i->def_file, i->def_num);
+				exit(1);
+			}
 			n->first_node = node->next_node;
 			free(node);
 			return n;
@@ -275,7 +325,7 @@ struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope, 
 		case FUNC_TYPE: {
 			struct sym_entry *n = sym_entry_alloc(FUNC_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
 			n->e.func.complete = 0;
-			int i = insert_entry(curr_scope, n);
+			struct sym_entry *i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);
 			return n;

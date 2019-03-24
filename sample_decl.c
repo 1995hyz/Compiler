@@ -1,5 +1,4 @@
-struct s1 {
+struct {
 	int a;
 	int b;
-	long a;
-};
+} str1;

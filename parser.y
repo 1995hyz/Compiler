@@ -970,7 +970,8 @@ struct_or_union_specifier:
 		else {
 			n->u.ident.ident_type = UNION_TYPE;
 		}
-		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
+		//struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
+		struct sym_entry *new_entry = sym_entry_alloc(n->u.ident.ident_type, n->u.ident.name, NULL, NULL, file_name, yylineno);
 		new_entry->e.stru.complete = 1;
 		new_entry->e.stru.table = temp;
 		$1->u.stru.entry = new_entry;

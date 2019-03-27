@@ -726,8 +726,8 @@ assignment_expr:
 	;
 
 declaration:
-	/*declaration_specifiers {}*/
-	declaration_specifiers init_declarator_list ';' {
+	declaration_specifiers ';' {}
+	| declaration_specifiers init_declarator_list ';' {
 	}
 	;
 
@@ -954,9 +954,16 @@ struct_or_union_specifier:
 		else {
 			n->u.ident.ident_type = UNION_TYPE;
 		}
-		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
-		new_entry->e.stru.complete = 0;
-		$$ = $1;
+		struct sym_entry *finding = search_all(curr_scope, $2, STRUCT_TYPE);
+		if(finding != NULL) {
+			yyerror("Variable has already been defined");
+		}
+		else {
+			struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
+			new_entry->e.stru.complete = 0;
+			print_entry(new_entry, 0);
+			$$ = $1;
+		}
 	}
 	| struct_or_union {enter_scope(STRUCT_SCOPE);} '{' struct_declaration_list '}' {
 		struct sym_table *temp = curr_scope;
@@ -990,11 +997,27 @@ struct_or_union_specifier:
 		else {
 			n->u.ident.ident_type = UNION_TYPE;
 		}
-		struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
-		new_entry->e.stru.complete = 1;
-		new_entry->e.stru.table = temp;
-		$1->u.stru.entry = new_entry;
-		print_entry(new_entry, 0);
+		//struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
+		struct sym_entry *finding = search_all(curr_scope, $2, STRUCT_TYPE);
+		if(finding != NULL) {
+			if(finding->e.stru.complete == 1) {
+				yyerror("Variable has already been defined");
+			}
+			else {
+				finding->e.stru.complete = 1;
+				finding->e.stru.table = temp;
+				finding->def_num = yylineno;
+				strncpy(finding->def_file, file_name, 1024);
+				print_entry(finding, 0);
+			}
+		}
+		else {
+			struct sym_entry *new_entry = sym_entry_alloc(n->u.ident.ident_type, n->u.ident.name, NULL, NULL, file_name, yylineno);
+			new_entry->e.stru.complete = 1;
+			new_entry->e.stru.table = temp;
+			//$1->u.stru.entry = new_entry;
+			print_entry(new_entry, 0);
+		}
 		$$ = $1;
 	} 
 	;

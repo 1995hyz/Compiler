@@ -62,22 +62,22 @@ struct sym_entry* search_entry(struct sym_table *curr_table, char *ident, int en
 }
 
 struct sym_entry* search_all(struct sym_table *curr_table, char *ident, int entry_type) {
-		struct sym_entry* i;
-		i = search_entry(curr_table, ident, entry_type);
-		if (i != NULL) {
-			return i;
-		}
-		else {
-			while(curr_table != NULL) {
-				if(curr_table->parent_table != NULL) {
-					i = search_entry(curr_table->parent_table, ident, entry_type);
-					if (i != NULL) {
-						return i;
-					}
-					curr_table = curr_table->parent_table;
+	struct sym_entry* i;
+	i = search_entry(curr_table, ident, entry_type);
+	if (i != NULL) {
+		return i;
+	}
+	else {
+		while(curr_table != NULL) {
+			if(curr_table->parent_table != NULL) {
+				i = search_entry(curr_table->parent_table, ident, entry_type);
+				if (i != NULL) {
+					return i;
 				}
 			}
+			curr_table = curr_table->parent_table;
 		}
+	}
 	return NULL;
 }
 
@@ -219,6 +219,9 @@ int print_entry(struct sym_entry* entry, int step_in) {
 				printf("definition at %s:%d {\n", entry->def_file, entry->def_num);
 				print_table(entry->e.stru.table);
 				printf("}\n");
+			}
+			else {
+				printf("struct %s is declared but undefined at %s:%d\n", entry->name, entry->def_file, entry->def_num);
 			}
 			break;
 		}

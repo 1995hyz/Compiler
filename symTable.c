@@ -250,7 +250,12 @@ int print_entry(struct sym_entry* entry, int step_in) {
 			break;
 		}
 		case FUNC_TYPE: {
-			printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
+			if(entry->e.func.complete == 0) {
+				printf("%s is declared but not defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
+			}
+			else {
+				printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
+			}
 			print_scope(entry);
 			printf("as a/an ");
 			print_storage_class(entry->e.func.storage_class);

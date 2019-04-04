@@ -1,6 +1,2 @@
-struct s1 str1;
-
-struct s1 {
-	int a;
-};
-
+int f();
+int f() { int a; }

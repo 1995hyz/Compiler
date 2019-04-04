@@ -162,16 +162,29 @@ declaration_or_fndef:
 
 function_definition:
 	declaration_specifiers declarator '{' {
-		astnode_link(&front, &end, $1);
-		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
-		add_storage_class(n);
-		n->e.func.complete = 1;
-		print_entry(n, 0);
-		front = NULL;
-		end = NULL;
-		enter_scope(FUNC_SCOPE);} 
+		struct sym_entry *finding = search_all(curr_scope, front->u.ident.name, FUNC_TYPE);
+		if(finding == NULL) {
+			astnode_link(&front, &end, $1);
+			struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
+			add_storage_class(n);
+			//n->e.func.complete = 1;
+			//print_entry(n, 0);
+			front = NULL;
+			end = NULL;
+		}
+		else if (finding->e.func.complete == 1) {
+			yyerror("Function has already been defined");
+		}
+		else {
+			front = NULL;
+			end = NULL;
+		}
+		enter_scope(FUNC_SCOPE); }
 	decl_or_stmt_list '}' {
+		struct sym_table *temp = curr_scope;
 		exit_scope();
+		curr_scope->last->e.func.complete = 1;
+		print_entry(curr_scope->last, 0);
 	}
 	;
 

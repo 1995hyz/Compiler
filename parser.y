@@ -179,7 +179,8 @@ function_definition:
 			front = NULL;
 			end = NULL;
 		}
-		enter_scope(FUNC_SCOPE); }
+		enter_scope(FUNC_SCOPE);
+		strncpy(curr_scope->name, $2->u.ident.name, 1024); }
 	decl_or_stmt_list '}' {
 		struct sym_table *temp = curr_scope;
 		exit_scope();
@@ -998,7 +999,7 @@ struct_or_union_specifier:
 		print_entry(new_entry, 0);
 		$$ = $1;
 	}
-	| struct_or_union IDENT {enter_scope(STRUCT_SCOPE);} '{' struct_declaration_list '}' {
+	| struct_or_union IDENT { enter_scope(STRUCT_SCOPE); strncpy(curr_scope->name, $2, 1024);} '{' struct_declaration_list '}' {
 		struct sym_table *temp = curr_scope;
 		exit_scope();
 		strncpy($1->u.stru.name, $2, 1024);

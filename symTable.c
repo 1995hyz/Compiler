@@ -245,7 +245,12 @@ int print_entry(struct sym_entry* entry, int step_in) {
 		case MEMBER_TYPE: {
 			printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
 			print_scope(entry);
-			printf("as a field of struct/union %s of type:\n", entry->name);
+			if(entry->curr_table->name != NULL) {
+				printf("as a field of struct/union %s of type:\n", entry->curr_table->name);
+			}
+			else {
+				printf("as a field of struct/union anonymous of type:\n");
+			}
 			trace_entry(entry);
 			break;
 		}

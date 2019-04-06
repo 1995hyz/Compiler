@@ -21,6 +21,7 @@
 
 struct sym_table {
 	int scope_type;
+	char name[1024];
 	struct sym_table* parent_table;
 	struct sym_entry *first;
 	struct sym_entry *last;

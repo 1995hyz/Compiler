@@ -178,6 +178,8 @@ function_definition:
 		else {
 			front = NULL;
 			end = NULL;
+			finding->def_num = yylineno;
+			strncpy(finding->def_file, file_name , 1024);
 		}
 		enter_scope(FUNC_SCOPE);
 		strncpy(curr_scope->name, $2->u.ident.name, 1024); }

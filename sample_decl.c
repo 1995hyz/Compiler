@@ -1,2 +1,5 @@
-//int f();
-int f() { int a; f=1;}
+int c;
+struct foo {
+	int a;
+	char b;
+} f[12];

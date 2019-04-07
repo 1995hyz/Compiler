@@ -175,15 +175,15 @@ int trace_entry(struct sym_entry* entry) {
 int print_scope(struct sym_entry* entry) {
 	switch(entry->curr_table->scope_type) {
 		case FILE_SCOPE: {
-			printf("[in global scope starting at %d] ", entry->def_num);
+			printf("[in global scope starting at %d] ", entry->curr_table->def_num);
 			break;
 		}
 		case STRUCT_SCOPE: {
-			printf("[in struct/union scope starting at %d] ", entry->def_num);
+			printf("[in struct/union scope starting at %d] ", entry->curr_table->def_num);
 			break;
 		}
 		case FUNC_SCOPE: {
-			printf("[in function scope starting at %d] ", entry->def_num);
+			printf("[in function scope starting at %d] ", entry->curr_table->def_num);
 			break;
 		}
 		default: {

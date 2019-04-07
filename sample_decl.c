@@ -1,5 +1,7 @@
-int c;
-struct foo {
+int f() {
 	int a;
-	char b;
-} f[12];
+	{
+		int b;
+	}
+	int c;
+}

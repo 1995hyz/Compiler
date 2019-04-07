@@ -207,13 +207,18 @@ decl_or_stmt_list:
 decl_or_stmt:
 	declaration {}
 	| statement {
-		print_tree($1, 0);
+		//print_tree($1, 0);
 	}
 	;
 
 statement:
-	expr ';' {}
-	| compound_statement {}
+	compound_statement {}
+	| expression_statement {}
+	;
+
+expression_statement:
+	';' {}
+	| expr ';' {}
 	;
 
 expr:	

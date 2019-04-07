@@ -186,6 +186,10 @@ int print_scope(struct sym_entry* entry) {
 			printf("[in function scope starting at %d] ", entry->curr_table->def_num);
 			break;
 		}
+		case BLOCK_SCOPE: {
+			printf("[in block scope starting at %d] ", entry->curr_table->def_num);
+			break;
+		}
 		default: {
 			printf("****Error: Current scope undefined.****");
 			return 1;

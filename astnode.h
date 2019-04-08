@@ -18,6 +18,9 @@
 #define AST_union 12
 #define AST_array 13
 
+#define AST_compound 14
+#define AST_block 15
+
 #define TAG 9
 #define LABEL 10
 #define MEMBER 11
@@ -98,6 +101,16 @@ struct astnode_array {
 	int num;
 };
 
+struct astnode_compound {
+	struct astnode *list;
+};
+
+struct astnode_block {
+	struct astnode *item;
+	struct astnode *next_block;
+	struct astnode *start;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -115,8 +128,16 @@ struct astnode {
 		struct astnode_struct stru;
 		struct astnode_union uni;
 		struct astnode_array arr;
+		
+		struct astnode_compound comp;
+		struct astnode_block blo;
 	} u;
 	struct astnode *next_node;
+};
+
+struct astnode_list {
+	struct astnode *node;
+	struct astnode_list *next;
 };
 
 struct astnode* astnode_alloc(int node_type);

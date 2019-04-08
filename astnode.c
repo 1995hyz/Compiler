@@ -124,6 +124,19 @@ void print_tree(struct astnode *node, int indent){
 			print_tree(node->u.tern.third, indent);
 			break;
 		}
+		case AST_compound: 
+		{	printf("LIST {\n");
+			print_tree(node->u.comp.list, indent);
+			printf("}\n");
+			break;
+		}
+		case AST_block:
+		{	print_tree(node->u.blo.item, indent);
+			if(node->u.blo.next_block != NULL) {
+				print_tree(node->u.blo.next_block, indent);
+			}
+			break;
+		}
 		default: printf("internal error: free bad node %d\n", node->node_type);
 	}
 }

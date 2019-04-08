@@ -134,6 +134,7 @@ int storage_class;
 %type <astnode_p> declaration_specifiers;
 %type <astnode_p> declarator;
 %type <astnode_p> direct_declarator;
+%type <astnode_p> compound_statement;
 %type <astnode_p> statement;
 %type <astnode_p> pointer;
 %type <astnode_p> type_qualifier_list;
@@ -144,6 +145,9 @@ int storage_class;
 %type <astnode_p> specifier_qualifier_list;
 %type <astnode_p> struct_declarator_list;
 %type <astnode_p> struct_declarator;
+%type <astnode_p> decl_or_stmt;
+%type <astnode_p> decl_or_stmt_list;
+%type <astnode_p> expression_statement;
 
 %%
 
@@ -182,25 +186,38 @@ function_definition:
 			strncpy(finding->def_file, file_name , 1024);
 		}
 		enter_scope(FUNC_SCOPE);
-		strncpy(curr_scope->name, $2->u.ident.name, 1024); }
+		strncpy(curr_scope->name, $2->u.ident.name, 1024); 
+	}
 	decl_or_stmt_list '}' {
 		struct sym_table *temp = curr_scope;
 		exit_scope();
 		curr_scope->last->e.func.complete = 1;
 		print_entry(curr_scope->last, 0);
+
+		printf("AST Dump for function\n");
+		printf(" LIST {\n");
+		print_tree($5, 0);
+		printf(" }\n");
 	}
 	;
 
 compound_statement:
 	'{' { enter_scope(BLOCK_SCOPE); } decl_or_stmt_list '}' {
 		exit_scope();
+		$$ = astnode_alloc(AST_compound);
+		$$->u.comp.list = $3->u.blo.start;
 	}
 	;
 
 decl_or_stmt_list:
-	decl_or_stmt {}
+	decl_or_stmt {
+		$1->u.blo.start = $1;
+		$$ = $1;
+	}
 	| decl_or_stmt_list decl_or_stmt {
-
+		$1->u.blo.next_block = $2;
+		$2->u.blo.start = $1->u.blo.start;
+		$$ = $2;
 	}
 	;
 
@@ -208,17 +225,20 @@ decl_or_stmt:
 	declaration {}
 	| statement {
 		//print_tree($1, 0);
+		$$ = astnode_alloc(AST_block);
+		struct astnode_block *n = &($$->u.blo);
+		n->item = $1;
 	}
 	;
 
 statement:
-	compound_statement {}
-	| expression_statement {}
+	compound_statement { $$ = $1; }
+	| expression_statement { $$ = $1; }
 	;
 
 expression_statement:
-	';' {}
-	| expr ';' {}
+	';' { $$ = NULL; }
+	| expr ';' { $$ = $1; }
 	;
 
 expr:	

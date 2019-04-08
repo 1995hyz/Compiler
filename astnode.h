@@ -50,6 +50,7 @@ struct astnode_ident {
 	char name[1024];
 	struct astnode* next;
 	int ident_type;
+	struct sym_entry *entry;
 };
 
 struct astnode_string {
@@ -143,6 +144,7 @@ struct astnode_list {
 struct astnode* astnode_alloc(int node_type);
 void print_tree(struct astnode*, int indent);
 void tree_free(struct astnode*);
+void print_sym_entry(struct sym_entry *entry);
 void astnode_link(struct astnode **head, struct astnode **tail, struct astnode *new_insert);
 
 #endif //_ASTNODE_H

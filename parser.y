@@ -260,6 +260,7 @@ prime_expr:
 	IDENT {
 		$$ = astnode_alloc(AST_ident);
 		strncpy($$->u.ident.name, $1, 1024);
+		$$->u.ident.entry = search_all(curr_scope, $1, VAR_TYPE);
 	}
 	| NUMBER {
 		$$ = astnode_alloc(AST_num);

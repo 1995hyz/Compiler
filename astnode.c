@@ -167,6 +167,11 @@ void print_tree(struct astnode *node, int indent){
 			print_tree(node->u.case_node.body, indent+2);
 			break;
 		}
+		case AST_default:
+		{	printf("DEFAULT\n");
+			print_tree(node->u.default_node.body, indent+1);
+			break;
+		}
 		default: printf("internal error: free bad node %d\n", node->node_type);
 	}
 }

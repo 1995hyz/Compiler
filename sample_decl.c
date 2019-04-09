@@ -1,5 +1,8 @@
 int f() {
 	int a;
-	case 2:
-		a = 1;
+	int b;
+	case 2: 
+		a += 1;
+	default:
+		b = 1; 
 }

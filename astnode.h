@@ -24,6 +24,7 @@
 #define AST_while 17
 #define AST_do 18
 #define AST_case 19
+#define AST_default 20
 
 #define TAG 9
 #define LABEL 10
@@ -137,6 +138,10 @@ struct astnode_case {
 	struct astnode *body;
 };
 
+struct astnode_default {
+	struct astnode *body;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -161,6 +166,7 @@ struct astnode {
 		struct astnode_while while_node;
 		struct astnode_do do_node;
 		struct astnode_case case_node;
+		struct astnode_default default_node;
 	} u;
 	struct astnode *next_node;
 };

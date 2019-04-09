@@ -23,6 +23,9 @@ int storage_class;
 	int j;
 }
 
+%left IF
+%left ELSE
+
 %token <i> NUMBER
 %token <arr> IDENT
 %token <i> CHARLIT
@@ -55,7 +58,7 @@ int storage_class;
 %token <j> CHAR
 %token <j> CONST
 %token 	CONTINUE
-%token 	DEFAULT
+%token <j> DEFAULT
 %token <j> DO
 %token <j> DOUBLE
 %token <j> ELSE
@@ -88,7 +91,7 @@ int storage_class;
 %token 	_IMAGINARY
 %token EOL
 
-%left ','
+/*%left ','
 %right TIMESEQ
 %right '='
 %right '?' ':'
@@ -105,7 +108,7 @@ int storage_class;
 %left PLUSPLUS MINUSMINUS
 %left '.'
 %left '[' ']'
-%left '(' ')'
+%left '(' ')'*/
 
 /*%start decl_or_stmt*/
 %start decl_or_fndef_list;
@@ -201,7 +204,7 @@ function_definition:
 		if($5 != NULL) {
 			printf("AST Dump for function\n");
 			printf("LIST {\n");
-			print_tree($5, 0);
+			print_tree($5->u.blo.start, 0);
 			printf(" }\n");
 		}
 	}
@@ -235,6 +238,7 @@ decl_or_stmt_list:
 			$$ = $1;
 		}
 		else if ($2 != NULL){
+			$2->u.blo.start = $2;
 			$$ = $2;
 		}
 		else {
@@ -269,6 +273,11 @@ labeled_statement:
 		n->expr = $2;
 		n->body = $4;
 	}
+	| DEFAULT ':' statement {
+		$$ = astnode_alloc(AST_default);
+		struct astnode_default *n = &($$->u.default_node);
+		n->body = $3;
+	}
 	;
 
 expression_statement:
@@ -277,13 +286,13 @@ expression_statement:
 	;
 
 selection_statement:
-	IF '(' expr ')' statement {
+	IF '(' expr ')' statement %prec IF {
 		$$ = astnode_alloc(AST_if);
 		struct astnode_if *n= &($$->u.if_node);
 		n->expr = $3;
 		n->if_body = $5;
 	}
-	| IF '(' expr ')' statement ELSE statement {
+	| IF '(' expr ')' statement ELSE statement %prec ELSE {
 		$$ = astnode_alloc(AST_if);
 		struct astnode_if *n= &($$->u.if_node);
 		n->expr = $3;

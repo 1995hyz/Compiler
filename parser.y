@@ -50,8 +50,8 @@ int storage_class;
 %token <s> OREQ
 %token <s> XOREQ
 %token <j> AUTO
-%token 	BREAK
-%token 	CASE
+%token <j> BREAK
+%token <j> CASE
 %token <j> CHAR
 %token <j> CONST
 %token 	CONTINUE
@@ -126,6 +126,7 @@ int storage_class;
 %type <astnode_p> log_and_expr;
 %type <astnode_p> log_or_expr;
 %type <astnode_p> conditional_expr;
+%type <astnode_p> constant_expr
 %type <astnode_p> assignment_expr;
 %type <astnode_p> declaration;
 %type <astnode_p> type_specifier;
@@ -150,6 +151,7 @@ int storage_class;
 %type <astnode_p> expression_statement;
 %type <astnode_p> selection_statement;
 %type <astnode_p> iteration_statement;
+%type <astnode_p> labeled_statement;
 
 %%
 
@@ -252,10 +254,21 @@ decl_or_stmt:
 	;
 
 statement:
-	compound_statement { $$ = $1; }
+	labeled_statement { $$ = $1; }
+	| compound_statement { $$ = $1; }
 	| expression_statement { $$ = $1; }
 	| selection_statement { $$ = $1; }
 	| iteration_statement { $$ = $1; }
+	;
+
+labeled_statement:
+	IDENT ':' statement { }
+	| CASE constant_expr ':' statement {
+		$$ = astnode_alloc(AST_case);
+		struct astnode_case *n = &($$->u.case_node);
+		n->expr = $2;
+		n->body = $4;
+	}
 	;
 
 expression_statement:
@@ -677,6 +690,10 @@ conditional_expr:
 		n->second = $3;
 		n->third = $5;
 	}
+	;
+
+constant_expr:
+	conditional_expr { $$ = $1; }
 	;
 
 assignment_expr:

@@ -23,6 +23,7 @@
 #define AST_if 16
 #define AST_while 17
 #define AST_do 18
+#define AST_case 19
 
 #define TAG 9
 #define LABEL 10
@@ -131,6 +132,11 @@ struct astnode_do {
 	struct astnode *body;
 };
 
+struct astnode_case {
+	struct astnode *expr;
+	struct astnode *body;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -154,6 +160,7 @@ struct astnode {
 		struct astnode_if if_node;
 		struct astnode_while while_node;
 		struct astnode_do do_node;
+		struct astnode_case case_node;
 	} u;
 	struct astnode *next_node;
 };
@@ -167,6 +174,7 @@ struct astnode* astnode_alloc(int node_type);
 void print_tree(struct astnode*, int indent);
 void tree_free(struct astnode*);
 void print_sym_entry(struct sym_entry *entry);
+void print_indent(int indent);
 void astnode_link(struct astnode **head, struct astnode **tail, struct astnode *new_insert);
 
 #endif //_ASTNODE_H

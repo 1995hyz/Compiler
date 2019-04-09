@@ -32,14 +32,8 @@ void astnode_link(struct astnode** head, struct astnode** tail, struct astnode* 
 }
 
 void print_tree(struct astnode *node, int indent){
-	char space = ' ';
 	indent++;
-	int temp = indent;
-	while (indent > 1){
-		printf("%c", space);
-		indent--;
-	}
-	indent = temp;
+	print_indent(indent);
 	switch(node->node_type){
 		case AST_ident:
 		{
@@ -163,6 +157,16 @@ void print_tree(struct astnode *node, int indent){
 			print_tree(node->u.do_node.expr, indent);
 			break;
 		}
+		case AST_case:
+		{	printf("CASE\n");
+			print_indent(indent+1);
+			printf("EXPR\n");
+			print_tree(node->u.case_node.expr, indent+2);
+			print_indent(indent+1);
+			printf("STMT\n");
+			print_tree(node->u.case_node.body, indent+2);
+			break;
+		}
 		default: printf("internal error: free bad node %d\n", node->node_type);
 	}
 }
@@ -225,5 +229,12 @@ void print_sym_entry(struct sym_entry *entry) {
 		default: {
 			printf("Error: Unknown entry type when print ast-tree sym-entry.\n");
 		}
+	}
+}
+
+void print_indent(int indent) {
+	while(indent > 1) {
+		printf("%c", ' ');
+		indent--;
 	}
 }

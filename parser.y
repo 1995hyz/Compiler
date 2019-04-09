@@ -56,7 +56,7 @@ int storage_class;
 %token <j> CONST
 %token 	CONTINUE
 %token 	DEFAULT
-%token 	DO
+%token <j> DO
 %token <j> DOUBLE
 %token <j> ELSE
 %token 	ENUM
@@ -82,7 +82,7 @@ int storage_class;
 %token <j> UNSIGNED
 %token <j> VOID
 %token <j> VOLATILE
-%token 	WHILE
+%token <j> WHILE
 %token <j> _BOOL
 %token <j> _COMPLEX
 %token 	_IMAGINARY
@@ -149,6 +149,7 @@ int storage_class;
 %type <astnode_p> decl_or_stmt_list;
 %type <astnode_p> expression_statement;
 %type <astnode_p> selection_statement;
+%type <astnode_p> iteration_statement;
 
 %%
 
@@ -254,6 +255,7 @@ statement:
 	compound_statement { $$ = $1; }
 	| expression_statement { $$ = $1; }
 	| selection_statement { $$ = $1; }
+	| iteration_statement { $$ = $1; }
 	;
 
 expression_statement:
@@ -274,6 +276,15 @@ selection_statement:
 		n->expr = $3;
 		n->if_body = $5;
 		n->else_body = $7;
+	}
+	;
+
+iteration_statement:
+	WHILE '(' expr ')' statement {
+		$$ = astnode_alloc(AST_while);
+		struct astnode_while *n = &($$->u.while_node);
+		n->expr = $3;
+		n->body = $5;
 	}
 	;
 

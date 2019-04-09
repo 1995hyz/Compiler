@@ -58,13 +58,13 @@ int storage_class;
 %token 	DEFAULT
 %token 	DO
 %token <j> DOUBLE
-%token 	ELSE
+%token <j> ELSE
 %token 	ENUM
 %token <j> EXTERN
 %token <j> FLOAT
 %token 	FOR
 %token 	GOTO
-%token 	IF
+%token <j> IF
 %token 	INLINE
 %token <j> INT
 %token <j> LONG
@@ -148,6 +148,7 @@ int storage_class;
 %type <astnode_p> decl_or_stmt;
 %type <astnode_p> decl_or_stmt_list;
 %type <astnode_p> expression_statement;
+%type <astnode_p> selection_statement;
 
 %%
 
@@ -252,11 +253,28 @@ decl_or_stmt:
 statement:
 	compound_statement { $$ = $1; }
 	| expression_statement { $$ = $1; }
+	| selection_statement { $$ = $1; }
 	;
 
 expression_statement:
 	';' { $$ = NULL; }
 	| expr ';' { $$ = $1; }
+	;
+
+selection_statement:
+	IF '(' expr ')' statement {
+		$$ = astnode_alloc(AST_if);
+		struct astnode_if *n= &($$->u.if_node);
+		n->expr = $3;
+		n->if_body = $5;
+	}
+	| IF '(' expr ')' statement ELSE statement {
+		$$ = astnode_alloc(AST_if);
+		struct astnode_if *n= &($$->u.if_node);
+		n->expr = $3;
+		n->if_body = $5;
+		n->else_body = $7;
+	}
 	;
 
 expr:	

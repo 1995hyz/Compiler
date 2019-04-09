@@ -1,8 +1,10 @@
-int s() {
-	int k;
-}
-
 int f() {
 	int a;
-	a = a + 1;
+	a = 1;
+	if(a == 1) {
+		a = a + 1;
+	}
+	else {
+		a = a -1;
+	}
 }

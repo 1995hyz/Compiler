@@ -139,6 +139,16 @@ void print_tree(struct astnode *node, int indent){
 			}
 			break;
 		}
+		case AST_if:
+		{	printf("IF, EXPR:\n");
+			print_tree(node->u.if_node.expr, indent);
+			printf("BODY:\n");
+			print_tree(node->u.if_node.if_body, indent);
+			if(node->u.if_node.else_body != NULL) {
+				print_tree(node->u.if_node.else_body, indent);
+			}
+			break;
+		}
 		default: printf("internal error: free bad node %d\n", node->node_type);
 	}
 }

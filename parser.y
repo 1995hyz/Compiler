@@ -286,6 +286,12 @@ iteration_statement:
 		n->expr = $3;
 		n->body = $5;
 	}
+	| DO statement WHILE '(' expr ')' ';' {
+		$$ = astnode_alloc(AST_do);
+		struct astnode_do *n = &($$->u.do_node);
+		n->expr = $5;
+		n->body = $2;
+	}
 	;
 
 expr:	

@@ -1,7 +1,13 @@
-int b;
+int s() {
+	int k;
+	k = 1;
+}
 
 int f() {
-	b = 1;
 	int a;
 	a = 1;
+	do {
+		a += 1;
+	}
+	while ( a < 9);
 }

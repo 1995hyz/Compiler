@@ -156,6 +156,13 @@ void print_tree(struct astnode *node, int indent){
 			print_tree(node->u.while_node.body, indent);
 			break;
 		}
+		case AST_do:
+		{	printf("DO, STMT\n");
+			print_tree(node->u.do_node.body, indent);
+			printf("EXPR\n");
+			print_tree(node->u.do_node.expr, indent);
+			break;
+		}
 		default: printf("internal error: free bad node %d\n", node->node_type);
 	}
 }

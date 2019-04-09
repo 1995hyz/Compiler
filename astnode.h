@@ -22,6 +22,7 @@
 #define AST_block 15
 #define AST_if 16
 #define AST_while 17
+#define AST_do 18
 
 #define TAG 9
 #define LABEL 10
@@ -125,6 +126,11 @@ struct astnode_while {
 	struct astnode *body;	
 };
 
+struct astnode_do {
+	struct astnode *expr;
+	struct astnode *body;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -147,6 +153,7 @@ struct astnode {
 		struct astnode_block blo;
 		struct astnode_if if_node;
 		struct astnode_while while_node;
+		struct astnode_do do_node;
 	} u;
 	struct astnode *next_node;
 };

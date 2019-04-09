@@ -1,10 +1,8 @@
+int s() {
+	int k;
+}
+
 int f() {
 	int a;
-	int b;
-	int c;
-	{
-		c = 1;
-		b = 2;
-		a = b + c;
-	}
+	a = a + 1;
 }

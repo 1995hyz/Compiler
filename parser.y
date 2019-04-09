@@ -193,11 +193,13 @@ function_definition:
 		exit_scope();
 		curr_scope->last->e.func.complete = 1;
 		print_entry(curr_scope->last, 0);
-
-		printf("AST Dump for function\n");
-		printf(" LIST {\n");
-		print_tree($5, 0);
-		printf(" }\n");
+		
+		if($5 != NULL) {
+			printf("AST Dump for function\n");
+			printf("LIST {\n");
+			print_tree($5, 0);
+			printf(" }\n");
+		}
 	}
 	;
 
@@ -211,18 +213,34 @@ compound_statement:
 
 decl_or_stmt_list:
 	decl_or_stmt {
-		$1->u.blo.start = $1;
-		$$ = $1;
+		if($1 != NULL) {
+			$1->u.blo.start = $1;
+			$$ = $1;
+		}
+		else {
+			$$ = NULL;
+		}
 	}
 	| decl_or_stmt_list decl_or_stmt {
-		$1->u.blo.next_block = $2;
-		$2->u.blo.start = $1->u.blo.start;
-		$$ = $2;
+		if($1 != NULL && $2 != NULL) {
+			$1->u.blo.next_block = $2;
+			$2->u.blo.start = $1->u.blo.start;
+			$$ = $2;
+		}
+		else if ($1 != NULL) {
+			$$ = $1;
+		}
+		else if ($2 != NULL){
+			$$ = $2;
+		}
+		else {
+			$$ = NULL;
+		}
 	}
 	;
 
 decl_or_stmt:
-	declaration {}
+	declaration { $$ = NULL; }
 	| statement {
 		//print_tree($1, 0);
 		$$ = astnode_alloc(AST_block);

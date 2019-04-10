@@ -30,6 +30,7 @@
 #define AST_continue 23
 #define AST_break 24
 #define AST_return 25
+#define AST_for 26
 
 #define TAG 9
 #define LABEL 10
@@ -160,6 +161,13 @@ struct astnode_return {
 	struct astnode *expr;
 };
 
+struct astnode_for {
+	struct astnode *init;
+	struct astnode *cond;
+	struct astnode *incr;
+	struct astnode *body;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -188,6 +196,7 @@ struct astnode {
 		struct astnode_switch switch_node;
 		struct astnode_goto goto_node;
 		struct astnode_return return_node;
+		struct astnode_for for_node;
 	} u;
 	struct astnode *next_node;
 };

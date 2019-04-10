@@ -114,8 +114,10 @@ void print_tree(struct astnode *node, int indent){
 		case AST_ternary:
 		{	printf("TERNARY OP, IF:\n");
 			print_tree(node->u.tern.first, indent);
+			print_indent(indent);
 			printf("THEN:\n");
 			print_tree(node->u.tern.second, indent);
+			print_indent(indent);
 			printf("ELSE:\n");
 			print_tree(node->u.tern.third, indent);
 			break;
@@ -123,6 +125,7 @@ void print_tree(struct astnode *node, int indent){
 		case AST_compound: 
 		{	printf("LIST {\n");
 			print_tree(node->u.comp.list, indent);
+			print_indent(indent);
 			printf("}\n");
 			break;
 		}
@@ -136,6 +139,7 @@ void print_tree(struct astnode *node, int indent){
 		case AST_if:
 		{	printf("IF, EXPR:\n");
 			print_tree(node->u.if_node.expr, indent);
+			print_indent(indent);
 			printf("BODY:\n");
 			print_tree(node->u.if_node.if_body, indent);
 			if(node->u.if_node.else_body != NULL) {
@@ -146,6 +150,7 @@ void print_tree(struct astnode *node, int indent){
 		case AST_while:
 		{	printf("WHILE, EXPR\n");
 			print_tree(node->u.while_node.expr, indent);
+			print_indent(indent);
 			printf("BODY\n");
 			print_tree(node->u.while_node.body, indent);
 			break;
@@ -153,6 +158,7 @@ void print_tree(struct astnode *node, int indent){
 		case AST_do:
 		{	printf("DO, STMT\n");
 			print_tree(node->u.do_node.body, indent);
+			print_indent(indent);
 			printf("EXPR\n");
 			print_tree(node->u.do_node.expr, indent);
 			break;
@@ -202,6 +208,28 @@ void print_tree(struct astnode *node, int indent){
 			}
 			else {
 				printf("RETURN VOID\n");
+			}
+			break;
+		}
+		case AST_for:
+		{	printf("FOR\n");
+			if(node->u.for_node.init != NULL) {
+				print_indent(indent);
+				printf("INIT:\n");
+				print_tree(node->u.for_node.init, indent+1);
+			}
+			if(node->u.for_node.cond != NULL) {
+				print_indent(indent);
+				printf("COND:\n");
+				print_tree(node->u.for_node.cond, indent+1);
+			}
+			print_indent(indent);
+			printf("BODY:\n");
+			print_tree(node->u.for_node.body, indent+1);
+			if(node->u.for_node.incr != NULL) {
+				print_indent(indent);
+				printf("INCR:\n");
+				print_tree(node->u.for_node.incr, indent+1);
 			}
 			break;
 		}

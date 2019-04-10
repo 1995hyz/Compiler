@@ -1,5 +1,12 @@
+int a;
+int b;
+int i;
+int y[5];
+
 int f() {
-	int a;
-	int b;
-	goto a;
+	for(a=b+2;i<a;i++)
+	{
+		y[0]=y[1]?a:b+i;
+	}
 }
+

@@ -156,6 +156,7 @@ int storage_class;
 %type <astnode_p> iteration_statement;
 %type <astnode_p> labeled_statement;
 %type <astnode_p> jump_statement;
+%type <astnode_p> init_for_expr;
 
 %%
 
@@ -322,6 +323,18 @@ iteration_statement:
 		n->expr = $5;
 		n->body = $2;
 	}
+	| FOR '(' init_for_expr ';' init_for_expr ';' init_for_expr ')' statement {
+		$$ = astnode_alloc(AST_for);
+		struct astnode_for *n = &($$->u.for_node);
+		n->init = $3;
+		n->cond = $5;
+		n->incr = $7;
+		n->body = $9;
+	}
+	;
+
+init_for_expr:
+	| expr { }
 	;
 
 jump_statement:

@@ -161,15 +161,48 @@ void print_tree(struct astnode *node, int indent){
 		{	printf("CASE\n");
 			print_indent(indent+1);
 			printf("EXPR\n");
-			print_tree(node->u.case_node.expr, indent+2);
+			print_tree(node->u.case_node.expr, indent+1);
 			print_indent(indent+1);
 			printf("STMT\n");
-			print_tree(node->u.case_node.body, indent+2);
+			print_tree(node->u.case_node.body, indent+1);
 			break;
 		}
 		case AST_default:
 		{	printf("DEFAULT\n");
-			print_tree(node->u.default_node.body, indent+1);
+			print_tree(node->u.default_node.body, indent);
+			break;
+		}
+		case AST_switch:
+		{	printf("SWITCH\n");
+			print_indent(indent+1);
+			printf("EXPR\n");
+			print_tree(node->u.switch_node.expr, indent+1);
+			print_indent(indent+1);
+			printf("BODY\n");
+			print_tree(node->u.switch_node.body, indent+1);
+			break;
+		}
+		case AST_goto:
+		{	printf("GOTO ");
+			print_tree(node->u.goto_node.ident, 0);
+			break;
+		}
+		case AST_continue:
+		{	printf("CONTINUE\n");
+			break;
+		}
+		case AST_break:
+		{	printf("BREAK\n");
+			break;
+		}
+		case AST_return:
+		{	printf("RETURN\n");
+			if(node->u.return_node.expr != NULL) {
+				print_tree(node->u.return_node.expr, indent);
+			}
+			else {
+				printf("RETURN VOID\n");
+			}
 			break;
 		}
 		default: printf("internal error: free bad node %d\n", node->node_type);

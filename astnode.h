@@ -25,6 +25,11 @@
 #define AST_do 18
 #define AST_case 19
 #define AST_default 20
+#define AST_switch 21
+#define AST_goto 22
+#define AST_continue 23
+#define AST_break 24
+#define AST_return 25
 
 #define TAG 9
 #define LABEL 10
@@ -142,6 +147,19 @@ struct astnode_default {
 	struct astnode *body;
 };
 
+struct astnode_switch {
+	struct astnode *expr;
+	struct astnode *body;
+};
+
+struct astnode_goto {
+	struct astnode *ident;
+};
+
+struct astnode_return {
+	struct astnode *expr;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -167,6 +185,9 @@ struct astnode {
 		struct astnode_do do_node;
 		struct astnode_case case_node;
 		struct astnode_default default_node;
+		struct astnode_switch switch_node;
+		struct astnode_goto goto_node;
+		struct astnode_return return_node;
 	} u;
 	struct astnode *next_node;
 };

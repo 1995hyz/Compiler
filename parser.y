@@ -57,7 +57,7 @@ int storage_class;
 %token <j> CASE
 %token <j> CHAR
 %token <j> CONST
-%token 	CONTINUE
+%token <j> CONTINUE
 %token <j> DEFAULT
 %token <j> DO
 %token <j> DOUBLE
@@ -66,20 +66,20 @@ int storage_class;
 %token <j> EXTERN
 %token <j> FLOAT
 %token 	FOR
-%token 	GOTO
+%token <j> GOTO
 %token <j> IF
 %token 	INLINE
 %token <j> INT
 %token <j> LONG
 %token 	REGISTER
 %token <j> RESTRICT
-%token 	RETURN
+%token <j> RETURN
 %token <j> SHORT
 %token <j> SIGNED
 %token <s> SIZEOF
 %token <j> STATIC
 %token <j> STRUCT
-%token 	SWITCH
+%token <j> SWITCH
 %token 	TYPEDEF
 %token <j> UNION
 %token <j> UNSIGNED
@@ -155,6 +155,7 @@ int storage_class;
 %type <astnode_p> selection_statement;
 %type <astnode_p> iteration_statement;
 %type <astnode_p> labeled_statement;
+%type <astnode_p> jump_statement;
 
 %%
 
@@ -263,6 +264,7 @@ statement:
 	| expression_statement { $$ = $1; }
 	| selection_statement { $$ = $1; }
 	| iteration_statement { $$ = $1; }
+	| jump_statement { $$ = $1; }
 	;
 
 labeled_statement:
@@ -288,16 +290,22 @@ expression_statement:
 selection_statement:
 	IF '(' expr ')' statement %prec IF {
 		$$ = astnode_alloc(AST_if);
-		struct astnode_if *n= &($$->u.if_node);
+		struct astnode_if *n = &($$->u.if_node);
 		n->expr = $3;
 		n->if_body = $5;
 	}
 	| IF '(' expr ')' statement ELSE statement %prec ELSE {
 		$$ = astnode_alloc(AST_if);
-		struct astnode_if *n= &($$->u.if_node);
+		struct astnode_if *n = &($$->u.if_node);
 		n->expr = $3;
 		n->if_body = $5;
 		n->else_body = $7;
+	}
+	| SWITCH '(' expr ')' statement {
+		$$ = astnode_alloc(AST_switch);
+		struct astnode_switch *n = &($$->u.switch_node);
+		n->expr = $3;
+		n->body = $5;
 	}
 	;
 
@@ -313,6 +321,29 @@ iteration_statement:
 		struct astnode_do *n = &($$->u.do_node);
 		n->expr = $5;
 		n->body = $2;
+	}
+	;
+
+jump_statement:
+	GOTO IDENT ';' {
+		$$ = astnode_alloc(AST_goto);
+		$$->u.goto_node.ident = astnode_alloc(AST_ident);
+		strncpy($$->u.goto_node.ident->u.ident.name, $2, 1024);
+		$$->u.goto_node.ident->u.ident.entry = search_all(curr_scope, $2, VAR_TYPE);
+	}
+	| CONTINUE ';' {
+		$$ = astnode_alloc(AST_continue);
+	}
+	| BREAK ';' {
+		$$ = astnode_alloc(AST_break);
+	}
+	| RETURN ';' {
+		$$ = astnode_alloc(AST_return);
+		$$->u.return_node.expr = NULL;
+	}
+	| RETURN expr ';' {
+		$$ = astnode_alloc(AST_return);
+		$$->u.return_node.expr = $2;
 	}
 	;
 

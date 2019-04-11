@@ -13,6 +13,7 @@
 #define STRUCT_TYPE 8
 #define UNION_TYPE 9
 #define MEMBER_TYPE 10
+#define LABEL_TYPE 11
 
 #define AUTO_STORE 11
 #define EXTERN_STORE 12

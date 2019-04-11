@@ -38,6 +38,12 @@ struct sym_entry* search_entry(struct sym_table *curr_table, char *ident, int en
 							break;
 						}
 					}
+					case LABEL_TYPE: {
+						if(curr_entry->entry_type == LABEL_TYPE) {
+							i = curr_entry;
+							break;
+						}
+					}
 					default: {
 						if(curr_entry->entry_type != STRUCT_TYPE && curr_entry->entry_type != UNION_TYPE && curr_entry->entry_type != MEMBER_TYPE) {
 							i = curr_entry;
@@ -345,6 +351,11 @@ struct sym_entry* add_entry(struct astnode* node, struct sym_table *curr_scope, 
 			struct sym_entry *i = insert_entry(curr_scope, n);
 			n->first_node = node->next_node;
 			free(node);
+			return n;
+		}
+		case LABEL_TYPE: {
+			struct sym_entry *n = sym_entry_alloc(LABEL_TYPE, node->u.ident.name, curr_scope, NULL, def_file, def_num);
+			struct sym_entry *i = insert_entry(curr_scope, n);
 			return n;
 		}
 	}

@@ -233,6 +233,14 @@ void print_tree(struct astnode *node, int indent){
 			}
 			break;
 		}
+		case AST_label:
+		{	printf("LABEL:\n");
+			print_tree(node->u.label_node.ident, indent+1);
+			print_indent(indent);
+			printf("BODY:\n");
+			print_tree(node->u.label_node.body, indent+1);
+			break;
+		}
 		default: printf("internal error: free bad node %d\n", node->node_type);
 	}
 }
@@ -290,6 +298,10 @@ void print_sym_entry(struct sym_entry *entry) {
 		}
 		case FUNC_TYPE: {
 			printf("stab_fn name=%s def @%s:%d\n", entry->name, entry->def_file, entry->def_num);
+			break;
+		}
+		case LABEL_TYPE: {
+			printf("stab_lab name=%s def @%s:%d\n", entry->name, entry->def_file, entry->def_num);
 			break;
 		}
 		default: {

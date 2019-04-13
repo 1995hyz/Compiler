@@ -1,8 +1,10 @@
-int b;
-int i;
-int y[5];
+int e;
 
-int f() {
-	a: b = 1;
+int g()
+{
+ int a;
+ 	a++;
+	future:
+		e++;
+	goto future;
 }
-

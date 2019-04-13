@@ -269,13 +269,21 @@ statement:
 	;
 
 labeled_statement:
-	IDENT ':' statement { 
+	IDENT ':' statement {
 		struct astnode *temp = astnode_alloc(AST_ident);
 		struct astnode_ident *n = &(temp->u.ident);
 		strncpy(temp->u.ident.name, $1, 1024);
 		n->ident_type = LABEL_TYPE;
-		struct sym_entry *i = add_entry(temp, curr_scope, file_name, yylineno);
-		n->entry = i;
+		struct sym_entry *finding = search_all(curr_scope, $1, LABEL_TYPE);
+		if( finding == NULL ){
+			struct sym_entry *i = add_entry(temp, curr_scope, file_name, yylineno);
+			n->entry = i;
+		}
+		else {
+			strncpy(finding->def_file, file_name, 1024);
+			finding->def_num = yylineno;
+			n->entry = finding;
+		}
 		$$ = astnode_alloc(AST_label);
 		struct astnode_label *t = &($$->u.label_node);
 		t->ident = temp;
@@ -353,7 +361,18 @@ jump_statement:
 		$$ = astnode_alloc(AST_goto);
 		$$->u.goto_node.ident = astnode_alloc(AST_ident);
 		strncpy($$->u.goto_node.ident->u.ident.name, $2, 1024);
-		$$->u.goto_node.ident->u.ident.entry = search_all(curr_scope, $2, VAR_TYPE);
+		struct sym_entry *finding = search_all(curr_scope, $2, LABEL_TYPE);
+		if( finding == NULL ) {
+			struct astnode *temp = astnode_alloc(AST_ident);
+			struct astnode_ident *n = &(temp->u.ident);
+			strncpy(temp->u.ident.name, $2, 1024);
+			n->ident_type = LABEL_TYPE;
+			struct sym_entry *i = add_entry(temp, curr_scope, file_name, yylineno);
+			$$->u.goto_node.ident->u.ident.entry = i;
+		}
+		else {
+			$$->u.goto_node.ident->u.ident.entry = finding;
+		}
 	}
 	| CONTINUE ';' {
 		$$ = astnode_alloc(AST_continue);

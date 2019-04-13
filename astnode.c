@@ -132,7 +132,7 @@ void print_tree(struct astnode *node, int indent){
 		case AST_block:
 		{	print_tree(node->u.blo.item, indent);
 			if(node->u.blo.next_block != NULL) {
-				print_tree(node->u.blo.next_block, indent);
+				print_tree(node->u.blo.next_block, indent-1);
 			}
 			break;
 		}

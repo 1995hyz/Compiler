@@ -33,6 +33,8 @@
 #define AST_for 26
 #define AST_label 27
 
+#define AST_temp 28
+
 #define TAG 9
 #define LABEL 10
 #define MEMBER 11

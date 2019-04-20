@@ -6,7 +6,7 @@
 struct bblock *curr_bb;
 
 struct astnode* gen_rvalue(struct astnode *node, struct astnode *target) {
-	if (node->node_type == AST_scaler) {
+	if (node->node_type == AST_ident) {
 		return node;
 	}
 	if (node->node_type == AST_num) {
@@ -33,7 +33,7 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target) {
 }
 
 struct astnode* gen_lvalue(struct astnode *node, int *mode) {
-	if (node->node_type == AST_scaler) {
+	if (node->node_type == AST_ident) {
 		*mode = DIRECT;
 		return node;
 	}
@@ -61,7 +61,13 @@ struct astnode* gen_assign(struct astnode *node) {
 }
 
 void gen_init(struct astnode *node) {
-	curr_bb = bblock_alloc();
+	//curr_bb = bblock_alloc();
+	struct bblock **first = &curr_bb;
+	gen_quad(node);
+	dump_bb(*first);
+}
+
+void gen_quad(struct astnode *node) {
 	switch (node->node_type) {
 		case AST_binop: {
 			switch(node->u.binop.operator) {
@@ -69,7 +75,26 @@ void gen_init(struct astnode *node) {
 					gen_assign(node);
 				}
 			}
+			break;
 		}
+		case AST_block:
+		{	struct bblock *new_bb = bblock_alloc();
+			bblock_append(&new_bb, &curr_bb);
+			gen_quad(node->u.blo.item);
+			if(node->u.blo.next_block != NULL) {
+				gen_quad(node->u.blo.next_block);
+			}
+			break;
+		}
+	}
+}
+
+struct bblock* bblock_append(struct bblock **new_block, struct bblock **old_block) {
+	if(*old_block == NULL) {
+		*old_block = *new_block;
+	}
+	else {
+		(*old_block)->next = *new_block;
 	}
 }
 
@@ -83,7 +108,7 @@ struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct
 	new_quad->result = result;
 	new_quad->src1 = src1;
 	new_quad->src2 = src2;
-	if(curr_bb == NULL) {
+	if(curr_bb->first == NULL) {
 		curr_bb->first = new_quad;
 	}
 	else {
@@ -114,7 +139,6 @@ struct bblock* bblock_alloc() {
 void dump_bb (struct bblock* bb){
 	while( 1 ) {
 		printf(".BB%d.%d :\n", bb->index[0], bb->index[1]);
-		printf("\t");
 		dump_quad(bb->first);
 		if( bb->next != NULL ) {
 			bb = bb->next;
@@ -129,6 +153,7 @@ void dump_quad (struct quad* q) {
 	while( 1 ) {
 		print_target(q->result);
 		print_opcode(q->opcode);
+		print_source(q->src1, q->src2);
 		if( q->next != NULL ) {
 			q = q->next;
 		}
@@ -139,9 +164,51 @@ void dump_quad (struct quad* q) {
 }
 
 void print_target(struct astnode *node) {
-
+	printf("\t");
+	if( node->node_type == AST_temp ) {
+		printf("%T");
+	}
+	else {
+		printf("%s=", node->u.ident.name);
+	}
 }
 
 void print_opcode(int opcode) {
+	printf("\t");
+	switch(opcode) {
+		case '+': printf("ADD"); break;
+		case LOAD: printf("LOAD"); break;
+		case STORE: printf("STORE"); break;
+		default: printf("****Error: Unknown opcode\n");
+	}
+}
 
+void print_source(struct astnode *src1, struct astnode *src2) {
+	printf("\t");
+	print_name(src1);
+	if(src2 != NULL) {
+		printf(",");
+		print_name(src2);
+	}
+	printf("\n");
+}
+
+void print_name(struct astnode *src) {
+	switch(src->node_type) {
+		case AST_temp: {
+			printf("%T");
+			break;
+		}
+		case AST_ident: {
+			printf("%s", src->u.ident.name);
+			break;
+		}
+		case AST_num: {
+			printf("%d", src->u.num.value);
+			break;
+		}
+		default: {
+			printf("****Error: Unknown astnode to print BB\n");
+		}
+	}
 }

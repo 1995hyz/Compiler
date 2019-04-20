@@ -22,9 +22,13 @@ struct bblock {
 struct astnode* gen_rvalue(struct astnode *node, struct astnode *target);
 struct astnode* new_temporary();
 struct quad* quad_alloc();
-struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct astnode *result);
 struct bblock* bblock_alloc();
+struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct astnode *result);
+void gen_quad(struct astnode *node);
+struct bblock* bblock_append(struct bblock **new_bb, struct bblock **old_bb);
 void dump_bb (struct bblock* bb);
 void dump_quad (struct quad* q); 
 void print_target(struct astnode *node); 
 void print_opcode(int opcode);
+void print_source(struct astnode *src1, struct astnode *src2);
+void print_name(struct astnode *src);

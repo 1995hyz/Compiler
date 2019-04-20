@@ -4,6 +4,7 @@
 #include <string.h>
 #include "astnode.h"
 #include "symTable.h"
+#include "genquad.h"
 
 //#define YYDEBUG 1
 
@@ -208,6 +209,8 @@ function_definition:
 			printf("LIST {\n");
 			print_tree($5->u.blo.start, 0);
 			printf(" }\n");
+			printf("************************\n");
+			gen_init($5->u.blo.start);
 		}
 	}
 	;

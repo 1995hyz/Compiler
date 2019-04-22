@@ -62,6 +62,8 @@ struct astnode* gen_assign(struct astnode *node) {
 
 void gen_init(struct astnode *node) {
 	//curr_bb = bblock_alloc();
+	struct bblock *new_bb = bblock_alloc();
+	bblock_append(&new_bb, &curr_bb);
 	struct bblock **first = &curr_bb;
 	gen_quad(node);
 	dump_bb(*first);
@@ -78,13 +80,24 @@ void gen_quad(struct astnode *node) {
 			break;
 		}
 		case AST_block:
-		{	struct bblock *new_bb = bblock_alloc();
-			bblock_append(&new_bb, &curr_bb);
+		{	//struct bblock *new_bb = bblock_alloc();
+			//bblock_append(&new_bb, &curr_bb);
 			gen_quad(node->u.blo.item);
 			if(node->u.blo.next_block != NULL) {
 				gen_quad(node->u.blo.next_block);
 			}
 			break;
+		}
+		case AST_compound:
+		{	struct bblock *new_bb = bblock_alloc();
+			bblock_append(&new_bb, &curr_bb);
+			if(node->u.comp.list != NULL) {
+				gen_quad(node->u.comp.list);
+			}
+			break;
+		}
+		default:
+		{	printf("****Error: Unknown astnode during generating quad.****\n");
 		}
 	}
 }
@@ -110,6 +123,7 @@ struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct
 	new_quad->src2 = src2;
 	if(curr_bb->first == NULL) {
 		curr_bb->first = new_quad;
+		curr_bb->last = new_quad;
 	}
 	else {
 		curr_bb->last->next = new_quad;
@@ -150,15 +164,20 @@ void dump_bb (struct bblock* bb){
 }
 
 void dump_quad (struct quad* q) {
-	while( 1 ) {
-		print_target(q->result);
-		print_opcode(q->opcode);
-		print_source(q->src1, q->src2);
-		if( q->next != NULL ) {
-			q = q->next;
-		}
-		else {
-			break;
+	if(q == NULL) {
+		printf("\n");
+	}
+	else {
+		while( 1 ) {
+			print_target(q->result);
+			print_opcode(q->opcode);
+			print_source(q->src1, q->src2);
+			if( q->next != NULL ) {
+				q = q->next;
+			}
+			else {
+				break;
+			}
 		}
 	}
 }

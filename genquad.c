@@ -4,6 +4,8 @@
 #include <stdlib.h>
 
 struct bblock *curr_bb;
+int block_index;
+int func_index;
 
 struct astnode* gen_rvalue(struct astnode *node, struct astnode *target) {
 	if (node->node_type == AST_ident) {
@@ -60,6 +62,19 @@ struct astnode* gen_assign(struct astnode *node) {
 	return NULL;
 }
 
+struct astnode* gen_if(struct astnode *node) {
+	struct bblock *bt = bblock_alloc();
+	struct bblock *bf = bblock_alloc();
+	struct bblock *bn;
+	if (node->u.if_node.else_body != NULL) {
+		bn = bblock_alloc();
+	}
+	else {
+		bn = bf;
+	}
+		
+}
+
 void gen_init(struct astnode *node) {
 	//curr_bb = bblock_alloc();
 	struct bblock *new_bb = bblock_alloc();
@@ -95,6 +110,10 @@ void gen_quad(struct astnode *node) {
 				gen_quad(node->u.comp.list);
 			}
 			break;
+		}
+		case AST_if:
+		{	gen_if(node);
+
 		}
 		default:
 		{	printf("****Error: Unknown astnode during generating quad.****\n");
@@ -147,6 +166,9 @@ struct bblock* bblock_alloc() {
 		fprintf(stderr, "out of space for basic block\n");
 		exit(1);
 	}
+	new_bblock->index[0] = func_index;
+	new_bblock->index[1] = block_index;
+	block_index = block_index + 1;
 	return new_bblock;
 }
 

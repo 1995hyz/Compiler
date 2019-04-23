@@ -53,13 +53,24 @@ struct astnode* gen_assign(struct astnode *node, struct bblock *bb) {
 	int dstmode;
 	struct astnode *dst = gen_lvalue(node->u.binop.left, &dstmode, bb);
 	if (dstmode == DIRECT) {
-		gen_rvalue(node->u.binop.right, dst, bb);
+		struct astnode *node_rval = gen_rvalue(node->u.binop.right, dst, bb);
+		if (node_rval->node_type == AST_ident) {
+			emit('+', node_rval, NULL, dst, bb);
+		}
+		else if (node_rval->node_type == AST_num) {
+			emit(MOV, node_rval, NULL, dst, bb);
+		}
 	}
 	else {
 		struct astnode* t1 = gen_rvalue(node->u.binop.right, NULL, bb);
 		emit(STORE, t1, dst, NULL, bb);
 	}
 	return NULL;
+}
+
+struct astnode* gen_cmp(struct astnode *node, struct bblock *bb) {
+	//struct astnode *left = gen_rvalue(node->u.binop.left, NULL, bb);
+
 }
 
 struct quad* gen_if(struct astnode *node, struct bblock *prev_bb) {
@@ -100,12 +111,16 @@ void gen_init(struct astnode *node) {
 }
 
 struct bblock* gen_quad(struct astnode *node, struct bblock *bb) {
-	struct bblock *new_bb;
+	struct bblock *new_bb = bb;
 	switch (node->node_type) {
 		case AST_binop: {
 			switch(node->u.binop.operator) {
 				case '=': {
 					gen_assign(node, bb);
+					break;
+				}
+				case '>': {
+
 				}
 			}
 			break;
@@ -245,10 +260,12 @@ void print_opcode(int opcode) {
 		case '+': printf("ADD"); break;
 		case '>': printf("CMP"); break;
 		case '<': printf("CMP"); break;
+		case '*': printf("MUL"); break;
 		case LOAD: printf("LOAD"); break;
 		case STORE: printf("STORE"); break;
 		case BR: printf("BR"); break;
 		case BRGE: printf("BRGE"); break;
+		case MOV: printf("MOV"); break;
 		default: printf("****Error: Unknown opcode\n");
 	}
 }

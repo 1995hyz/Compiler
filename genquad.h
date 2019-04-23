@@ -7,6 +7,7 @@
 #define STORE 257
 #define BR 258
 #define BRGE 259
+#define MOV 260
 
 #define DIRECT 1
 #define INDIRECT 2

@@ -2,6 +2,7 @@
 #define _ASTNODE_H
 
 #include "symTable.h"
+#include "genquad.h"
 
 #define AST_binop 1
 #define AST_unary 2
@@ -34,6 +35,7 @@
 #define AST_label 27
 
 #define AST_temp 28
+#define AST_bb 29
 
 #define TAG 9
 #define LABEL 10
@@ -176,6 +178,10 @@ struct astnode_label {
 	struct astnode *body;
 };
 
+struct astnode_bb {
+	struct bblock *bb;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -206,6 +212,8 @@ struct astnode {
 		struct astnode_return return_node;
 		struct astnode_for for_node;
 		struct astnode_label label_node;
+
+		struct astnode_bb basic_block;
 	} u;
 	struct astnode *next_node;
 };

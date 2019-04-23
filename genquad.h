@@ -1,7 +1,12 @@
+#ifndef _GENQUAD_H
+#define _GENQUAD_H
+
 #include "astnode.h"
 
 #define LOAD 256
 #define STORE 257
+#define BR 258
+#define BRGE 259
 
 #define DIRECT 1
 #define INDIRECT 2
@@ -17,18 +22,25 @@ struct bblock {
 	struct quad *first;
 	struct quad *last;
 	struct bblock *next;
+	struct astnode *node;
 };
 
-struct astnode* gen_rvalue(struct astnode *node, struct astnode *target);
+struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct bblock *bb);
+struct astnode* gen_lvalue(struct astnode *node, int *mode, struct bblock *bb);
 struct astnode* new_temporary();
 struct quad* quad_alloc();
 struct bblock* bblock_alloc();
-struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct astnode *result);
-void gen_quad(struct astnode *node);
+struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct astnode *result, struct bblock *curr_bb);
+struct bblock* gen_quad(struct astnode *node, struct bblock *bb);
+struct astnode* gen_assign(struct astnode *node, struct bblock *bb);
+struct quad* gen_if(struct astnode *node, struct bblock *prev_bb);
 struct bblock* bblock_append(struct bblock **new_bb, struct bblock **old_bb);
+void link_block(struct bblock *branch_to, struct bblock *branch_in);
 void dump_bb (struct bblock* bb);
 void dump_quad (struct quad* q); 
 void print_target(struct astnode *node); 
 void print_opcode(int opcode);
 void print_source(struct astnode *src1, struct astnode *src2);
 void print_name(struct astnode *src);
+
+#endif //_GENQUAD_H

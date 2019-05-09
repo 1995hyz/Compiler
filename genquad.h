@@ -2,6 +2,7 @@
 #define _GENQUAD_H
 
 #include "astnode.h"
+#include "symTable.h"
 
 #define LOAD 256
 #define STORE 257
@@ -9,8 +10,9 @@
 #define BRGT 259
 #define BRLT 260
 #define MOV 261
-#define RET 262
-#define LEA 263
+#define MUL 262
+#define RET 263
+#define LEA 264
 
 #define DIRECT 1
 #define INDIRECT 2

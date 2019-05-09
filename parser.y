@@ -210,7 +210,7 @@ function_definition:
 			print_tree($5->u.blo.start, 0);
 			printf(" }\n");
 			printf("************************\n");
-			gen_init($5->u.blo.start);
+			gen_init($5->u.blo.start, curr_scope);
 		}
 	}
 	;

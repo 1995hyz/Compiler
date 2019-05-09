@@ -1,12 +1,39 @@
 #include "genquad.h"
 #include "astnode.h"
 #include "symTable.h"
+#include "parser.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 //struct bblock *curr_bb;
 int block_index;
 int func_index;
+///int type_length = 1;;
+struct sym_table *curr_table;
+
+int get_type(struct sym_entry *entry) {
+	struct astnode *node = entry->first_node;
+	while(node != NULL) {
+		if(node->node_type == AST_scaler) {
+			switch(node->u.scaler.scaler_type) {
+				case CHAR: return 1;
+				case INT: return 4;
+				default: return 4;
+			}
+		}
+		else if(node->node_type == AST_pointer) {
+			return 1;
+		}
+		else {
+			node = node->next_node;
+		}
+	}
+	return -1;
+}
+
+void check_pointer(struct astnode *left, struct astnode *right) {
+	
+}
 
 struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct bblock *bb) {
 	if (node->node_type == AST_ident) {
@@ -28,7 +55,50 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 		if (!target) {
 			target = new_temporary();
 		}
-		struct quad *new_quad = emit(node->u.binop.operator, left, right, target, bb);
+		// The following two if stmt handle pointer +/- integer
+		if (left->node_type == AST_ident && right->node_type == AST_num) {
+			int type_length = 1;
+			switch(left->u.ident.entry->first_node->node_type) {
+				case AST_array:
+				case AST_pointer: {
+					type_length = get_type(left->u.ident.entry);
+					struct astnode *type_size = astnode_alloc(AST_num);
+					type_size->u.num.value = type_length;
+					struct astnode *temp = new_temporary();
+					struct astnode *temp_2 = new_temporary();
+					emit(MUL, type_size, right, temp, bb);
+					emit(LEA, left, NULL, temp_2, bb);
+					emit(node->u.binop.operator, temp_2, temp, target, bb);
+					break;
+				}
+				default: {
+					struct quad *new_quad = emit(node->u.binop.operator, left, right, target, bb);
+				}
+			}
+		}
+		else if (right->node_type == AST_ident && left->node_type == AST_num) {
+			int type_length = 1;
+			switch(right->u.ident.entry->first_node->node_type) {
+				case AST_array:
+				case AST_pointer: {
+					type_length = get_type(right->u.ident.entry);
+					struct astnode *type_size = astnode_alloc(AST_num);
+					type_size->u.num.value = type_length;
+					struct astnode *temp = new_temporary();
+					struct astnode *temp_2 = new_temporary();
+					emit(MUL, type_size, left, temp, bb);
+					emit(LEA, right, NULL, temp_2, bb);
+					emit(node->u.binop.operator, temp_2, temp, target, bb);
+					break;
+				}
+				default: {
+					struct quad *new_quad = emit(node->u.binop.operator, left, right, target, bb);
+				}
+			}
+		}
+		else {
+			struct quad *new_quad = emit(node->u.binop.operator, left, right, target, bb);
+		}
 		return target;
 	}
 	if (node->node_type == AST_array) {
@@ -39,15 +109,20 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 	if (node->node_type == AST_unary) {
 		switch(node->u.unaop.operator) {
 			case '*': {
-				struct astnode* addr = gen_rvalue(node->u.unaop.right, NULL, bb);
-				struct astnode* temp = new_temporary();
+				struct astnode *addr = gen_rvalue(node->u.unaop.right, NULL, bb);
+				struct astnode *temp = new_temporary();
 				if (!target) {
 					target = new_temporary();
 				}
 				struct quad *new_quad = emit(LOAD, addr, NULL, temp, bb); // Must load addr into a temp reg instead of a variable
-				//struct quad *new_quad_2 = emit(MOV, temp, NULL, target, bb);
 				return temp;//target;
 			}
+			case SIZEOF: {
+				int type_size = get_type(node->u.unaop.right->u.ident.entry); // Assume sizeof only follows an ident
+				struct astnode *var_size = astnode_alloc(AST_num);
+				var_size->u.num.value = type_size;
+				return var_size;
+			}	
 		}
 	}
 	return NULL;
@@ -74,7 +149,7 @@ struct astnode* gen_assign(struct astnode *node, struct bblock *bb) {
 	if (dstmode == DIRECT) {
 		struct astnode *node_rval = gen_rvalue(node->u.binop.right, dst, bb);
 		if (node_rval->node_type == AST_ident) {
-			emit('+', node_rval, NULL, dst, bb);
+			//emit(LOAD, node_rval, NULL, dst, bb);
 		}
 		else if (node_rval->node_type == AST_num) {
 			emit(MOV, node_rval, NULL, dst, bb);
@@ -124,8 +199,9 @@ void link_block(struct bblock *branch_to, struct bblock *branch_in) {
 	emit(BR, branch_to->node, NULL, NULL, branch_in);
 }
 
-void gen_init(struct astnode *node) {
+void gen_init(struct astnode *node, struct sym_table *table) {
 	//curr_bb = bblock_alloc();
+	curr_table = table;
 	struct bblock *new_bb = bblock_alloc();
 	//bblock_append(&new_bb, &curr_bb);
 	//struct bblock **first = &curr_bb;
@@ -290,6 +366,7 @@ void print_opcode(int opcode) {
 	printf("\t");
 	switch(opcode) {
 		case '+': printf("ADD"); break;
+		case '-': printf("SUB"); break;
 		case '>': printf("CMP"); break;
 		case '<': printf("CMP"); break;
 		case '*': printf("MUL"); break;
@@ -299,6 +376,7 @@ void print_opcode(int opcode) {
 		case BRGT: printf("BRGT"); break;
 		case BRLT: printf("BRLT"); break;
 		case MOV: printf("MOV"); break;
+		case MUL: printf("MUL"); break;
 		case RET: printf("RET"); break;
 		case LEA: printf("LEA"); break;
 		default: printf("****Error: Unknown opcode\n");

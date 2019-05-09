@@ -1,6 +1,6 @@
 int g()
 {	
-	int a[10];
-	int v;
-	v = *a;
+	int a[5];
+	int b;
+	b = a[2] + 1;
 }

@@ -103,6 +103,22 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 				}
 			}
 		}
+		// The following conditional stmt handles Pointer +/- Pointer
+		else if (right->node_type == AST_ident && left->node_type == AST_ident) {
+			if (right->u.ident.entry->first_node->node_type == AST_pointer
+				&&  left->u.ident.entry->first_node->node_type == AST_pointer) {
+				struct astnode *temp = new_temporary(reg_counter);
+				reg_counter++;
+				struct astnode *temp_2 = new_temporary(reg_counter);
+				reg_counter++;
+				emit(LEA, left, NULL, temp, bb);
+				emit(LEA, right, NULL, temp_2, bb);
+				emit(node->u.binop.operator, temp, temp_2, target, bb);
+			}
+			else {
+				emit(node->u.binop.operator, left, right, target, bb);
+			}
+		}
 		else {
 			struct quad *new_quad = emit(node->u.binop.operator, left, right, target, bb);
 		}

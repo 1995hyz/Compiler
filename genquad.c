@@ -8,6 +8,7 @@
 //struct bblock *curr_bb;
 int block_index;
 int func_index;
+int reg_counter;
 ///int type_length = 1;;
 struct sym_table *curr_table;
 
@@ -39,7 +40,8 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 	if (node->node_type == AST_ident) {
 		switch(node->u.ident.entry->first_node->node_type) {
 			case AST_array: {
-				target = new_temporary();
+				target = new_temporary(reg_counter);
+				reg_counter++;
 				struct quad *new_quad = emit(LEA, node, NULL, target, bb);
 				return target;
 			}
@@ -53,7 +55,8 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 		struct astnode* left = gen_rvalue(node->u.binop.left, NULL, bb);
 		struct astnode* right = gen_rvalue(node->u.binop.right, NULL, bb);
 		if (!target) {
-			target = new_temporary();
+			target = new_temporary(reg_counter);
+			reg_counter++;
 		}
 		// The following two if stmt handle pointer +/- integer
 		if (left->node_type == AST_ident && right->node_type == AST_num) {
@@ -64,8 +67,10 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 					type_length = get_type(left->u.ident.entry);
 					struct astnode *type_size = astnode_alloc(AST_num);
 					type_size->u.num.value = type_length;
-					struct astnode *temp = new_temporary();
-					struct astnode *temp_2 = new_temporary();
+					struct astnode *temp = new_temporary(reg_counter);
+					reg_counter++;
+					struct astnode *temp_2 = new_temporary(reg_counter);
+					reg_counter++;
 					emit(MUL, type_size, right, temp, bb);
 					emit(LEA, left, NULL, temp_2, bb);
 					emit(node->u.binop.operator, temp_2, temp, target, bb);
@@ -84,8 +89,10 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 					type_length = get_type(right->u.ident.entry);
 					struct astnode *type_size = astnode_alloc(AST_num);
 					type_size->u.num.value = type_length;
-					struct astnode *temp = new_temporary();
-					struct astnode *temp_2 = new_temporary();
+					struct astnode *temp = new_temporary(reg_counter);
+					reg_counter++;
+					struct astnode *temp_2 = new_temporary(reg_counter);
+					reg_counter++;
 					emit(MUL, type_size, left, temp, bb);
 					emit(LEA, right, NULL, temp_2, bb);
 					emit(node->u.binop.operator, temp_2, temp, target, bb);
@@ -102,7 +109,8 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 		return target;
 	}
 	if (node->node_type == AST_array) {
-		target = new_temporary();
+		target = new_temporary(reg_counter);
+		reg_counter++;
 		struct quad *new_quad = emit(LEA, node, NULL, target, bb);
 		return target;
 	}
@@ -110,9 +118,11 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 		switch(node->u.unaop.operator) {
 			case '*': {
 				struct astnode *addr = gen_rvalue(node->u.unaop.right, NULL, bb);
-				struct astnode *temp = new_temporary();
+				struct astnode *temp = new_temporary(reg_counter);
+				reg_counter++;
 				if (!target) {
-					target = new_temporary();
+					target = new_temporary(reg_counter);
+					reg_counter++;
 				}
 				struct quad *new_quad = emit(LOAD, addr, NULL, temp, bb); // Must load addr into a temp reg instead of a variable
 				return temp;//target;
@@ -202,6 +212,7 @@ void link_block(struct bblock *branch_to, struct bblock *branch_in) {
 void gen_init(struct astnode *node, struct sym_table *table) {
 	//curr_bb = bblock_alloc();
 	curr_table = table;
+	reg_counter = 0;
 	struct bblock *new_bb = bblock_alloc();
 	//bblock_append(&new_bb, &curr_bb);
 	//struct bblock **first = &curr_bb;
@@ -274,8 +285,10 @@ void add_return(struct bblock *bb) {
 	emit(RET, NULL, NULL, NULL, bb);
 }
 
-struct astnode* new_temporary() {
-	return astnode_alloc(AST_temp);
+struct astnode* new_temporary(int counter) {
+	struct astnode *ast_temp = astnode_alloc(AST_temp);
+	ast_temp->u.temp_node.index = counter;
+	return ast_temp;
 }
 
 struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct astnode *result, struct bblock *curr_bb) {
@@ -354,7 +367,7 @@ void print_target(struct astnode *node) {
 	printf("\t");
 	if(node != NULL) {
 		if( node->node_type == AST_temp ) {
-			printf("%T");
+			printf("%T%d", node->u.temp_node.index);
 		}
 		else {
 			printf("%s=", node->u.ident.name);
@@ -397,7 +410,7 @@ void print_name(struct astnode *src) {
 	if( src != NULL ) {
 		switch(src->node_type) {
 			case AST_temp: {
-				printf("%T");
+				printf("%T%d", src->u.temp_node.index);
 				break;
 			}
 			case AST_ident: {

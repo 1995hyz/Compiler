@@ -33,7 +33,7 @@ struct bblock {
 
 struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct bblock *bb);
 struct astnode* gen_lvalue(struct astnode *node, int *mode, struct bblock *bb);
-struct astnode* new_temporary();
+struct astnode* new_temporary(int index);
 struct quad* quad_alloc();
 struct bblock* bblock_alloc();
 struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct astnode *result, struct bblock *curr_bb);

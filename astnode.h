@@ -182,6 +182,10 @@ struct astnode_bb {
 	struct bblock *bb;
 };
 
+struct astnode_temp {
+	int index;
+};
+
 struct astnode {
 	int node_type;
 	union astnodes{
@@ -214,6 +218,7 @@ struct astnode {
 		struct astnode_label label_node;
 
 		struct astnode_bb basic_block;
+		struct astnode_temp temp_node;
 	} u;
 	struct astnode *next_node;
 };

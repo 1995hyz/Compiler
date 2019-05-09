@@ -1,5 +1,6 @@
 #include "genquad.h"
 #include "astnode.h"
+#include "symTable.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,6 +10,13 @@ int func_index;
 
 struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct bblock *bb) {
 	if (node->node_type == AST_ident) {
+		switch(node->u.ident.entry->first_node->node_type) {
+			case AST_array: {
+				target = new_temporary();
+				struct quad *new_quad = emit(LEA, node, NULL, target, bb);
+				return target;
+			}
+		}
 		return node;
 	}
 	if (node->node_type == AST_num) {
@@ -23,13 +31,24 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 		struct quad *new_quad = emit(node->u.binop.operator, left, right, target, bb);
 		return target;
 	}
-	if (node->node_type == AST_pointer) {
-		struct astnode* addr = gen_rvalue(node->next_node, NULL, bb);
-		if (!target) {
-			target = new_temporary();
-		}
-		struct quad *new_quad = emit(LOAD, addr, NULL, target, bb);
+	if (node->node_type == AST_array) {
+		target = new_temporary();
+		struct quad *new_quad = emit(LEA, node, NULL, target, bb);
 		return target;
+	}
+	if (node->node_type == AST_unary) {
+		switch(node->u.unaop.operator) {
+			case '*': {
+				struct astnode* addr = gen_rvalue(node->u.unaop.right, NULL, bb);
+				struct astnode* temp = new_temporary();
+				if (!target) {
+					target = new_temporary();
+				}
+				struct quad *new_quad = emit(LOAD, addr, NULL, temp, bb); // Must load addr into a temp reg instead of a variable
+				//struct quad *new_quad_2 = emit(MOV, temp, NULL, target, bb);
+				return temp;//target;
+			}
+		}
 	}
 	return NULL;
 }
@@ -60,6 +79,9 @@ struct astnode* gen_assign(struct astnode *node, struct bblock *bb) {
 		else if (node_rval->node_type == AST_num) {
 			emit(MOV, node_rval, NULL, dst, bb);
 		}
+		else if (node_rval->node_type == AST_temp) {
+			emit(MOV, node_rval, NULL, dst, bb);
+		}
 	}
 	else {
 		struct astnode* t1 = gen_rvalue(node->u.binop.right, NULL, bb);
@@ -85,7 +107,9 @@ struct quad* gen_if(struct astnode *node, struct bblock *prev_bb) {
 	}
 	gen_quad(node->u.if_node.expr, bexpr);
 	switch(node->u.if_node.expr->u.binop.operator) {
-		case '>': branch = emit(BRGE, bt->node, bf->node, NULL, bexpr); break;
+		// This if conditional statement can only handle comparision and logic
+		case '>': branch = emit(BRGT, bt->node, bf->node, NULL, bexpr); break;
+		case '<': branch = emit(BRLT, bt->node, bf->node, NULL, bexpr); break;
 		default: printf("****Error: Unknown binop during if stmt quad generation****\n");
 	}
 	link_block(bexpr, prev_bb);
@@ -106,6 +130,7 @@ void gen_init(struct astnode *node) {
 	//bblock_append(&new_bb, &curr_bb);
 	//struct bblock **first = &curr_bb;
 	gen_quad(node, new_bb);
+	add_return(new_bb);
 	//dump_bb(*first);
 	dump_bb(new_bb);
 }
@@ -164,6 +189,13 @@ struct bblock* bblock_append(struct bblock **new_block, struct bblock **old_bloc
 	else {
 		(*old_block)->next = *new_block;
 	}
+}
+
+void add_return(struct bblock *bb) {
+	while(bb->next != NULL) {
+		bb = bb->next;
+	}
+	emit(RET, NULL, NULL, NULL, bb);
 }
 
 struct astnode* new_temporary() {
@@ -264,8 +296,11 @@ void print_opcode(int opcode) {
 		case LOAD: printf("LOAD"); break;
 		case STORE: printf("STORE"); break;
 		case BR: printf("BR"); break;
-		case BRGE: printf("BRGE"); break;
+		case BRGT: printf("BRGT"); break;
+		case BRLT: printf("BRLT"); break;
 		case MOV: printf("MOV"); break;
+		case RET: printf("RET"); break;
+		case LEA: printf("LEA"); break;
 		default: printf("****Error: Unknown opcode\n");
 	}
 }
@@ -281,25 +316,27 @@ void print_source(struct astnode *src1, struct astnode *src2) {
 }
 
 void print_name(struct astnode *src) {
-	switch(src->node_type) {
-		case AST_temp: {
-			printf("%T");
-			break;
-		}
-		case AST_ident: {
-			printf("%s", src->u.ident.name);
-			break;
-		}
-		case AST_num: {
-			printf("%d", src->u.num.value);
-			break;
-		}
-		case AST_bb: {
-			printf(".BB%d.%d", src->u.basic_block.bb->index[0], src->u.basic_block.bb->index[1]);
-			break;
-		}
-		default: {
-			printf("****Error: Unknown astnode to print BB\n");
+	if( src != NULL ) {
+		switch(src->node_type) {
+			case AST_temp: {
+				printf("%T");
+				break;
+			}
+			case AST_ident: {
+				printf("%s", src->u.ident.name);
+				break;
+			}
+			case AST_num: {
+				printf("%d", src->u.num.value);
+				break;
+			}
+			case AST_bb: {
+				printf(".BB%d.%d", src->u.basic_block.bb->index[0], src->u.basic_block.bb->index[1]);
+				break;
+			}
+			default: {
+				printf("****Error: Unknown astnode to print BB\n");
+			}
 		}
 	}
 }

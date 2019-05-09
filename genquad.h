@@ -6,8 +6,11 @@
 #define LOAD 256
 #define STORE 257
 #define BR 258
-#define BRGE 259
-#define MOV 260
+#define BRGT 259
+#define BRLT 260
+#define MOV 261
+#define RET 262
+#define LEA 263
 
 #define DIRECT 1
 #define INDIRECT 2
@@ -36,6 +39,7 @@ struct bblock* gen_quad(struct astnode *node, struct bblock *bb);
 struct astnode* gen_assign(struct astnode *node, struct bblock *bb);
 struct quad* gen_if(struct astnode *node, struct bblock *prev_bb);
 struct bblock* bblock_append(struct bblock **new_bb, struct bblock **old_bb);
+void add_return(struct bblock *bb);
 void link_block(struct bblock *branch_to, struct bblock *branch_in);
 void dump_bb (struct bblock* bb);
 void dump_quad (struct quad* q); 

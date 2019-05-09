@@ -1,7 +1,6 @@
 int g()
-{
-	int a;
-	int b;
-	a = 0;
-	b = a + 1;
+{	
+	int a[10];
+	int v;
+	v = *a;
 }

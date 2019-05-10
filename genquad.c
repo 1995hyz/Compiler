@@ -191,9 +191,26 @@ struct astnode* gen_assign(struct astnode *node, struct bblock *bb) {
 	return NULL;
 }
 
-struct astnode* gen_cmp(struct astnode *node, struct bblock *bb) {
+struct astnode* gen_condexp(struct astnode *node, struct bblock *bb) {
 	//struct astnode *left = gen_rvalue(node->u.binop.left, NULL, bb);
-
+	switch(node->node_type) {
+		case AST_num: {
+			struct astnode *temp = astnode_alloc(AST_num);
+			temp->u.num.value = 1;
+			emit(CMP, node, temp, NULL, bb);
+			break;
+		}
+		case AST_binop: {
+			struct astnode *left = gen_rvalue(node->u.binop.left, NULL, bb);
+			struct astnode *right = gen_rvalue(node->u.binop.right, NULL, bb);
+			emit(CMP, left, right, NULL, bb);
+			break;
+		}
+		default: {
+			fprintf(stderr, "****Error: Unknown astnode type during condexp quad generation****\n");
+		}
+	}
+	return NULL;
 }
 
 struct quad* gen_if(struct astnode *node, struct bblock *prev_bb) {
@@ -206,7 +223,8 @@ struct quad* gen_if(struct astnode *node, struct bblock *prev_bb) {
 		//bn = bblock_alloc();
 		gen_quad(node->u.if_node.else_body, bf);
 	}
-	gen_quad(node->u.if_node.expr, bexpr);
+	//gen_quad(node->u.if_node.expr, bexpr);
+	gen_condexp(node->u.if_node.expr, bexpr);
 	switch(node->u.if_node.expr->u.binop.operator) {
 		// This if conditional statement can only handle comparision and logic
 		case '>': branch = emit(BRGT, bt->node, bf->node, NULL, bexpr); break;
@@ -218,6 +236,27 @@ struct quad* gen_if(struct astnode *node, struct bblock *prev_bb) {
 	gen_quad(node->u.if_node.if_body, bt);
 	bblock_append(&bt, &bexpr);
 	bblock_append(&bf, &bt);
+	return branch;
+}
+
+struct quad* gen_while(struct astnode *node, struct bblock *prev_bb, struct bblock *next_bb) {
+	struct bblock *bexpr = bblock_alloc();
+	struct bblock *body = bblock_alloc();
+	struct quad *branch;
+	//gen_quad(node->u.while_node.expr, bexpr);
+	gen_condexp(node->u.while_node.expr, bexpr);
+	switch(node->u.while_node.expr->u.binop.operator) {
+		// This while conditional statement can only handle comparision and logic
+		case '>': branch = emit(BRGT, body->node, next_bb->node, NULL, bexpr); break;
+		case '<': branch = emit(BRLT, body->node, next_bb->node, NULL, bexpr); break;
+		default: printf("****Error: Unknown binop during if stmt quad generation****\n");
+	}
+	link_block(bexpr, prev_bb);
+	bblock_append(&bexpr, &prev_bb);
+	gen_quad(node->u.while_node.body, body);
+	link_block(bexpr, body);
+	bblock_append(&body, &bexpr);
+	bblock_append(&next_bb, &body);
 	return branch;
 }
 
@@ -248,7 +287,8 @@ struct bblock* gen_quad(struct astnode *node, struct bblock *bb) {
 					break;
 				}
 				case '>': {
-
+					//gen_condexp(node, bb);
+					break;
 				}
 			}
 			break;
@@ -276,6 +316,15 @@ struct bblock* gen_quad(struct astnode *node, struct bblock *bb) {
 			link_block(new_bb, branch->src1->u.basic_block.bb);
 			link_block(new_bb, branch->src2->u.basic_block.bb);
 			bblock_append(&new_bb, &(branch->src2->u.basic_block.bb));
+			break;
+		}
+		case AST_while:
+		{	new_bb = bblock_alloc();
+			struct quad *branch = gen_while(node, bb, new_bb);
+			//new_bb = bblock_alloc();
+			//link_block(new_bb, branch->src1->u.basic_block.bb);
+			//link_block(new_bb, branch->src2->u.basic_block.bb);
+			//bblock_append(&new_bb, &(branch->src2->u.basic_block.bb));
 			break;
 		}
 		default:
@@ -408,6 +457,7 @@ void print_opcode(int opcode) {
 		case MUL: printf("MUL"); break;
 		case RET: printf("RET"); break;
 		case LEA: printf("LEA"); break;
+		case CMP: printf("CMP"); break;
 		default: printf("****Error: Unknown opcode\n");
 	}
 }

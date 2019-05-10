@@ -1,9 +1,9 @@
 int g()
-{
+{	
 	int a;
-	a = a - 1;
-	int *b;
-	int *c;
-	int *d;
-	d = c - d;	
+	int b;
+	b = 2;
+	while (b>1) {
+		a = 1;
+	}
 }

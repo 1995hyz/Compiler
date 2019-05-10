@@ -13,6 +13,7 @@
 #define MUL 262
 #define RET 263
 #define LEA 264
+#define CMP 265
 
 #define DIRECT 1
 #define INDIRECT 2
@@ -39,7 +40,9 @@ struct bblock* bblock_alloc();
 struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct astnode *result, struct bblock *curr_bb);
 struct bblock* gen_quad(struct astnode *node, struct bblock *bb);
 struct astnode* gen_assign(struct astnode *node, struct bblock *bb);
+struct astnode* gen_condexp(struct astnode *node, struct bblock *bb);
 struct quad* gen_if(struct astnode *node, struct bblock *prev_bb);
+struct quad* gen_while(struct astnode *node, struct bblock *prev_bb, struct bblock *next_bb);
 struct bblock* bblock_append(struct bblock **new_bb, struct bblock **old_bb);
 void add_return(struct bblock *bb);
 void link_block(struct bblock *branch_to, struct bblock *branch_in);

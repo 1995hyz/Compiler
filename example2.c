@@ -1,5 +1,5 @@
 int f() {
-	int *a;
-	int *p;
-	p = 5 + a;
+	int f;
+	f = 1;
+	g(f+2, 5);
 }

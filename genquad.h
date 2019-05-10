@@ -19,6 +19,7 @@
 #define ARGBEGIN 268
 #define BREQ 269
 #define BRNEQ 270
+#define DIV 271
 
 #define DIRECT 1
 #define INDIRECT 2

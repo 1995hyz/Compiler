@@ -5,11 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//struct bblock *curr_bb;
 int block_index;
 int func_index;
 int reg_counter;
-///int type_length = 1;;
+int array_flag;
+int array_type_length = 1;
 struct sym_table *curr_table;
 
 int get_type(struct sym_entry *entry) {
@@ -32,10 +32,6 @@ int get_type(struct sym_entry *entry) {
 	return -1;
 }
 
-void check_pointer(struct astnode *left, struct astnode *right) {
-	
-}
-
 struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct bblock *bb) {
 	if (node->node_type == AST_ident) {
 		switch(node->u.ident.entry->first_node->node_type) {
@@ -43,6 +39,8 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 				target = new_temporary(reg_counter);
 				reg_counter++;
 				struct quad *new_quad = emit(LEA, node, NULL, target, bb);
+				array_flag = 1;
+				array_type_length = get_type(node->u.ident.entry);
 				return target;
 			}
 		}
@@ -118,6 +116,14 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 			else {
 				emit(node->u.binop.operator, left, right, target, bb);
 			}
+		}
+		else if (array_flag && (right->node_type == AST_num)) {
+			struct astnode *type_size = astnode_alloc(AST_num);
+			type_size->u.num.value = array_type_length;
+			struct astnode *temp = new_temporary(reg_counter);
+			reg_counter++;
+			emit(MUL, type_size, right, temp, bb);
+			emit(node->u.binop.operator, left, temp, target, bb);
 		}
 		else {
 			struct quad *new_quad = emit(node->u.binop.operator, left, right, target, bb);
@@ -492,6 +498,7 @@ void print_opcode(int opcode) {
 		case '>': printf("CMP"); break;
 		case '<': printf("CMP"); break;
 		case '*': printf("MUL"); break;
+		case '/': printf("DIV"); break;
 		case LOAD: printf("LOAD"); break;
 		case STORE: printf("STORE"); break;
 		case BR: printf("BR"); break;

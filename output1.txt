@@ -1,0 +1,62 @@
+>>>>>>>>>>>>
+a is defined at "example1.c":2 [in function scope starting at 1] as a variable with stgclass auto  of type:
+ array #10
+ INT
+x is defined at "example1.c":3 [in function scope starting at 1] as a variable with stgclass auto  of type:
+ INT
+p is defined at "example1.c":4 [in function scope starting at 1] as a variable with stgclass auto  of type:
+ pointer to
+ INT
+f is defined at "example1.c":1 [in global scope starting at 1] as a/an extern function returning  INT
+AST Dump for function
+LIST {
+ ASSIGNMENT
+  stab_var name=p def @"example1.c":4
+  BINARY OP +
+   stab_var name=a def @"example1.c":2
+   NUM 5
+ ASSIGNMENT
+  stab_var name=x def @"example1.c":3
+  UNARY OP *
+   BINARY OP +
+    stab_var name=a def @"example1.c":2
+    NUM 2
+ IF, EXPR:
+  COMPARISON OP >
+   stab_var name=x def @"example1.c":3
+   NUM 1
+ BODY:
+  LIST {
+       ASSIGNMENT
+     stab_var name=x def @"example1.c":3
+     NUM 3
+  }
+  LIST {
+       ASSIGNMENT
+     stab_var name=x def @"example1.c":3
+     NUM 5
+  }
+ }
+************************
+.BB0.0 :
+	%T0	LEA	a{lvar}
+	%T1	MUL	4,5
+	p=	ADD	%T0,%T1
+	%T2	LEA	a{lvar}
+	%T4	MUL	4,2
+	%T3	ADD	%T2,%T4
+	%T5	LOAD	%T3
+	x=	MOV	%T5
+		BR	.BB0.1
+.BB0.1 :
+		CMP	x{lvar},1
+		BRGT	.BB0.2,.BB0.3
+.BB0.2 :
+	x=	MOV	3
+		BR	.BB0.4
+.BB0.3 :
+	x=	MOV	5
+		BR	.BB0.4
+.BB0.4 :
+		RET	
+************************

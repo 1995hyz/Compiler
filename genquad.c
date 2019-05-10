@@ -260,6 +260,47 @@ struct quad* gen_while(struct astnode *node, struct bblock *prev_bb, struct bblo
 	return branch;
 }
 
+struct quad* gen_func(struct astnode *node, struct bblock* curr_bb, struct bblock* new_bb) {
+	struct astnode *temp = astnode_alloc(AST_num);
+	struct quad *branch;
+	int argu_num = argu_counter(node->u.func.next);
+	temp->u.num.value = argu_num;
+	emit(ARGBEGIN, temp, NULL, NULL, curr_bb);
+	struct astnode *argu = node->u.func.next;
+	while(argu_num>0) {
+		switch(argu->u.argu.value->node_type) {
+			case AST_num:
+			case AST_ident: {
+				struct astnode *argu_index = astnode_alloc(AST_num);
+				argu_index->u.num.value = argu->u.argu.num;
+				emit(ARG, argu_index, argu->u.argu.value, NULL, curr_bb);
+				break;
+			}
+			default: {
+				fprintf(stderr, "****Error: Invalid astnode type when generating quad for func argu****\n");
+			}
+		}
+		argu_num--;
+		argu = argu->u.argu.next;
+	}
+	branch = emit(CALL, node, NULL, NULL, curr_bb);
+	link_block(new_bb, curr_bb);
+	bblock_append(&new_bb, &curr_bb);
+	return branch;
+}
+
+int argu_counter(struct astnode *node) {
+	int counter = 0;
+	struct astnode *temp = node->u.func.next;
+	while(temp != NULL) {
+		if (temp->node_type == AST_argu) {
+			counter++;
+		}
+		temp = temp->u.argu.next;
+	}
+	return counter;
+}
+
 void link_block(struct bblock *branch_to, struct bblock *branch_in) {
 	emit(BR, branch_to->node, NULL, NULL, branch_in);
 }
@@ -325,6 +366,11 @@ struct bblock* gen_quad(struct astnode *node, struct bblock *bb) {
 			//link_block(new_bb, branch->src1->u.basic_block.bb);
 			//link_block(new_bb, branch->src2->u.basic_block.bb);
 			//bblock_append(&new_bb, &(branch->src2->u.basic_block.bb));
+			break;
+		}
+		case AST_func:
+		{	new_bb = bblock_alloc();
+			struct quad *branch = gen_func(node, bb, new_bb);
 			break;
 		}
 		default:
@@ -458,6 +504,9 @@ void print_opcode(int opcode) {
 		case RET: printf("RET"); break;
 		case LEA: printf("LEA"); break;
 		case CMP: printf("CMP"); break;
+		case CALL: printf("CALL"); break;
+		case ARGBEGIN: printf("ARGBEGIN"); break;
+		case ARG: printf("ARG"); break;
 		default: printf("****Error: Unknown opcode\n");
 	}
 }
@@ -489,6 +538,10 @@ void print_name(struct astnode *src) {
 			}
 			case AST_bb: {
 				printf(".BB%d.%d", src->u.basic_block.bb->index[0], src->u.basic_block.bb->index[1]);
+				break;
+			}
+			case AST_func: {
+				printf("$%s", src->u.func.name->u.ident.name);
 				break;
 			}
 			default: {

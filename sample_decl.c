@@ -2,8 +2,7 @@ int g()
 {	
 	int a;
 	int b;
-	b = 2;
-	while (b>1) {
-		a = 1;
-	}
+	b = b+1;
+	g(b, 1);
+	b = b+1;
 }

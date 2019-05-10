@@ -14,6 +14,9 @@
 #define RET 263
 #define LEA 264
 #define CMP 265
+#define CALL 266
+#define ARG 267
+#define ARGBEGIN 268
 
 #define DIRECT 1
 #define INDIRECT 2

@@ -291,21 +291,23 @@ void tree_free(struct astnode *node){
 }
 
 void print_sym_entry(struct sym_entry *entry) {
-	switch(entry->entry_type) {
-		case VAR_TYPE: {
-			printf("stab_var name=%s def @%s:%d\n", entry->name, entry->def_file, entry->def_num);
-			break;
-		}
-		case FUNC_TYPE: {
-			printf("stab_fn name=%s def @%s:%d\n", entry->name, entry->def_file, entry->def_num);
-			break;
-		}
-		case LABEL_TYPE: {
-			printf("stab_lab name=%s def @%s:%d\n", entry->name, entry->def_file, entry->def_num);
-			break;
-		}
-		default: {
-			printf("Error: Unknown entry type when print ast-tree sym-entry.\n");
+	if(entry != NULL) {
+		switch(entry->entry_type) {
+			case VAR_TYPE: {
+				printf("stab_var name=%s def @%s:%d\n", entry->name, entry->def_file, entry->def_num);
+				break;
+			}
+			case FUNC_TYPE: {
+				printf("stab_fn name=%s def @%s:%d\n", entry->name, entry->def_file, entry->def_num);
+				break;
+			}
+			case LABEL_TYPE: {
+				printf("stab_lab name=%s def @%s:%d\n", entry->name, entry->def_file, entry->def_num);
+				break;
+			}
+			default: {
+				printf("Error: Unknown entry type when print ast-tree sym-entry.\n");
+			}
 		}
 	}
 }

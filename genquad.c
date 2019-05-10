@@ -141,7 +141,7 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 					reg_counter++;
 				}
 				struct quad *new_quad = emit(LOAD, addr, NULL, temp, bb); // Must load addr into a temp reg instead of a variable
-				return temp;//target;
+				return temp;
 			}
 			case SIZEOF: {
 				int type_size = get_type(node->u.unaop.right->u.ident.entry); // Assume sizeof only follows an ident
@@ -223,12 +223,13 @@ struct quad* gen_if(struct astnode *node, struct bblock *prev_bb) {
 		//bn = bblock_alloc();
 		gen_quad(node->u.if_node.else_body, bf);
 	}
-	//gen_quad(node->u.if_node.expr, bexpr);
 	gen_condexp(node->u.if_node.expr, bexpr);
 	switch(node->u.if_node.expr->u.binop.operator) {
 		// This if conditional statement can only handle comparision and logic
 		case '>': branch = emit(BRGT, bt->node, bf->node, NULL, bexpr); break;
 		case '<': branch = emit(BRLT, bt->node, bf->node, NULL, bexpr); break;
+		case NOTEQ: branch = emit(BRNEQ, bt->node, bf->node, NULL, bexpr); break;
+		case EQEQ: branch = emit(BRNEQ, bt->node, bf->node, NULL, bexpr); break;
 		default: printf("****Error: Unknown binop during if stmt quad generation****\n");
 	}
 	link_block(bexpr, prev_bb);
@@ -243,7 +244,6 @@ struct quad* gen_while(struct astnode *node, struct bblock *prev_bb, struct bblo
 	struct bblock *bexpr = bblock_alloc();
 	struct bblock *body = bblock_alloc();
 	struct quad *branch;
-	//gen_quad(node->u.while_node.expr, bexpr);
 	gen_condexp(node->u.while_node.expr, bexpr);
 	switch(node->u.while_node.expr->u.binop.operator) {
 		// This while conditional statement can only handle comparision and logic
@@ -268,12 +268,17 @@ struct quad* gen_func(struct astnode *node, struct bblock* curr_bb, struct bbloc
 	emit(ARGBEGIN, temp, NULL, NULL, curr_bb);
 	struct astnode *argu = node->u.func.next;
 	while(argu_num>0) {
+		struct astnode *argu_index = astnode_alloc(AST_num);
+		argu_index->u.num.value = argu->u.argu.num;
 		switch(argu->u.argu.value->node_type) {
 			case AST_num:
 			case AST_ident: {
-				struct astnode *argu_index = astnode_alloc(AST_num);
-				argu_index->u.num.value = argu->u.argu.num;
 				emit(ARG, argu_index, argu->u.argu.value, NULL, curr_bb);
+				break;
+			}
+			case AST_binop: {
+				struct astnode *target = gen_rvalue(argu->u.argu.value, NULL, curr_bb);
+				emit(ARG, argu_index, target, NULL, curr_bb);
 				break;
 			}
 			default: {
@@ -305,16 +310,13 @@ void link_block(struct bblock *branch_to, struct bblock *branch_in) {
 	emit(BR, branch_to->node, NULL, NULL, branch_in);
 }
 
-void gen_init(struct astnode *node, struct sym_table *table) {
-	//curr_bb = bblock_alloc();
+void gen_init(struct astnode *node, struct sym_table *table, int func_counter) {
 	curr_table = table;
+	func_index = func_counter;
 	reg_counter = 0;
 	struct bblock *new_bb = bblock_alloc();
-	//bblock_append(&new_bb, &curr_bb);
-	//struct bblock **first = &curr_bb;
 	gen_quad(node, new_bb);
 	add_return(new_bb);
-	//dump_bb(*first);
 	dump_bb(new_bb);
 }
 
@@ -325,10 +327,6 @@ struct bblock* gen_quad(struct astnode *node, struct bblock *bb) {
 			switch(node->u.binop.operator) {
 				case '=': {
 					gen_assign(node, bb);
-					break;
-				}
-				case '>': {
-					//gen_condexp(node, bb);
 					break;
 				}
 			}
@@ -499,6 +497,8 @@ void print_opcode(int opcode) {
 		case BR: printf("BR"); break;
 		case BRGT: printf("BRGT"); break;
 		case BRLT: printf("BRLT"); break;
+		case BREQ: printf("BREQ"); break;
+		case BRNEQ: printf("BRNEQ"); break;
 		case MOV: printf("MOV"); break;
 		case MUL: printf("MUL"); break;
 		case RET: printf("RET"); break;
@@ -530,6 +530,12 @@ void print_name(struct astnode *src) {
 			}
 			case AST_ident: {
 				printf("%s", src->u.ident.name);
+				if(src->u.ident.entry->curr_table->scope_type == FILE_SCOPE) {
+					printf("{global}");
+				}
+				else {
+					printf("{lvar}");
+				}
 				break;
 			}
 			case AST_num: {

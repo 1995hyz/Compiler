@@ -1,0 +1,48 @@
+>>>>>>>>>>>>
+a is defined at "example4.c":2 [in function scope starting at 1] as a variable with stgclass auto  of type:
+ INT
+b is defined at "example4.c":3 [in function scope starting at 1] as a variable with stgclass auto  of type:
+ INT
+f is defined at "example4.c":1 [in global scope starting at 1] as a/an extern function returning  INT
+AST Dump for function
+LIST {
+ ASSIGNMENT
+  stab_var name=a def @"example4.c":2
+  NUM 1
+ FUNC
+    argu #1=
+   stab_var name=b def @"example4.c":3
+  argu #2=
+   NUM 1
+ WHILE, EXPR
+  COMPARISON OP >
+   stab_var name=a def @"example4.c":2
+   NUM 1
+ BODY
+  LIST {
+       ASSIGNMENT
+     stab_var name=a def @"example4.c":2
+     BINARY OP -
+      stab_var name=a def @"example4.c":2
+      NUM 1
+  }
+ }
+************************
+.BB0.0 :
+	a=	MOV	1
+		ARGBEGIN	2
+		ARG	1,b{lvar}
+		ARG	2,1
+		CALL	$g
+		BR	.BB0.1
+.BB0.1 :
+		BR	.BB0.3
+.BB0.3 :
+		CMP	a{lvar},1
+		BRGT	.BB0.4,.BB0.2
+.BB0.4 :
+	a=	SUB	a{lvar},1
+		BR	.BB0.3
+.BB0.2 :
+		RET	
+************************

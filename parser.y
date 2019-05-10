@@ -13,6 +13,7 @@ struct astnode* end;
 struct sym_table *curr_scope;
 extern char file_name[1024];
 int storage_class;
+int func_counter;
 
 %}
 
@@ -38,8 +39,8 @@ int storage_class;
 %token <s> SHR
 %token <s> LTEQ
 %token <s> GTEQ
-%token <s> EQEQ
-%token <s> NOTEQ
+%token <j> EQEQ
+%token <j> NOTEQ
 %token <s> LOGAND
 %token <s> LOGOR
 %token 	ELLIPSIS
@@ -77,7 +78,7 @@ int storage_class;
 %token <j> RETURN
 %token <j> SHORT
 %token <j> SIGNED
-%token <s> SIZEOF
+%token <j> SIZEOF
 %token <j> STATIC
 %token <j> STRUCT
 %token <j> SWITCH
@@ -91,25 +92,6 @@ int storage_class;
 %token <j> _COMPLEX
 %token 	_IMAGINARY
 %token EOL
-
-/*%left ','
-%right TIMESEQ
-%right '='
-%right '?' ':'
-%left LOGOR
-%left LOGAND
-%left '|'
-%left '^'
-%left '&'
-%left EQEQ NOTEQ
-%left '>' '<' LTEQ GTEQ
-%left SHL SHR
-%left '+' '-'
-%left '*' '/' '%'
-%left PLUSPLUS MINUSMINUS
-%left '.'
-%left '[' ']'
-%left '(' ')'*/
 
 /*%start decl_or_stmt*/
 %start decl_or_fndef_list;
@@ -210,7 +192,9 @@ function_definition:
 			print_tree($5->u.blo.start, 0);
 			printf(" }\n");
 			printf("************************\n");
-			gen_init($5->u.blo.start, curr_scope);
+			gen_init($5->u.blo.start, curr_scope, func_counter);
+			func_counter++;
+			printf("************************\n");
 		}
 	}
 	;

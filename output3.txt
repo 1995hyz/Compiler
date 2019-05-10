@@ -1,0 +1,59 @@
+>>>>>>>>>>>>
+a is defined at "sample_decl.c":2 [in function scope starting at 1] as a variable with stgclass auto  of type:
+ INT
+b is defined at "sample_decl.c":3 [in function scope starting at 1] as a variable with stgclass auto  of type:
+ INT
+z is defined at "sample_decl.c":1 [in global scope starting at 1] as a/an extern function returning  INT
+AST Dump for function
+LIST {
+ IF, EXPR:
+  COMPARISON OP >
+   stab_var name=a def @"sample_decl.c":2
+   stab_var name=b def @"sample_decl.c":3
+ BODY:
+  LIST {
+       ASSIGNMENT
+     stab_var name=a def @"sample_decl.c":2
+     NUM 1
+  }
+ IF, EXPR:
+  COMPARISON OP !=
+   stab_var name=b def @"sample_decl.c":3
+   stab_var name=a def @"sample_decl.c":2
+ BODY:
+  LIST {
+       ASSIGNMENT
+     stab_var name=b def @"sample_decl.c":3
+     NUM 3
+  }
+  LIST {
+       ASSIGNMENT
+     stab_var name=a def @"sample_decl.c":2
+     NUM 3
+  }
+ }
+************************
+.BB0.0 :
+		BR	.BB0.1
+.BB0.1 :
+		CMP	a{lvar},b{lvar}
+		BRGT	.BB0.2,.BB0.3
+.BB0.2 :
+	a=	MOV	1
+		BR	.BB0.4
+.BB0.3 :
+		BR	.BB0.4
+.BB0.4 :
+		BR	.BB0.5
+.BB0.5 :
+		CMP	b{lvar},a{lvar}
+		BRNEQ	.BB0.6,.BB0.7
+.BB0.6 :
+	b=	MOV	3
+		BR	.BB0.8
+.BB0.7 :
+	a=	MOV	3
+		BR	.BB0.8
+.BB0.8 :
+		RET	
+************************

@@ -1,0 +1,23 @@
+>>>>>>>>>>>>
+a is defined at "example2.c":2 [in function scope starting at 1] as a variable with stgclass auto  of type:
+ pointer to
+ INT
+p is defined at "example2.c":3 [in function scope starting at 1] as a variable with stgclass auto  of type:
+ pointer to
+ INT
+f is defined at "example2.c":1 [in global scope starting at 1] as a/an extern function returning  INT
+AST Dump for function
+LIST {
+ ASSIGNMENT
+  stab_var name=p def @"example2.c":3
+  BINARY OP +
+   NUM 5
+   stab_var name=a def @"example2.c":2
+ }
+************************
+.BB0.0 :
+	%T0	MUL	1,5
+	%T1	LEA	a{lvar}
+	p=	ADD	%T1,%T0
+		RET	
+************************

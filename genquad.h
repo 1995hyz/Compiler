@@ -17,6 +17,8 @@
 #define CALL 266
 #define ARG 267
 #define ARGBEGIN 268
+#define BREQ 269
+#define BRNEQ 270
 
 #define DIRECT 1
 #define INDIRECT 2
@@ -46,6 +48,7 @@ struct astnode* gen_assign(struct astnode *node, struct bblock *bb);
 struct astnode* gen_condexp(struct astnode *node, struct bblock *bb);
 struct quad* gen_if(struct astnode *node, struct bblock *prev_bb);
 struct quad* gen_while(struct astnode *node, struct bblock *prev_bb, struct bblock *next_bb);
+struct quad* gen_func(struct astnode *node, struct bblock* curr_bb, struct bblock* new_bb);
 struct bblock* bblock_append(struct bblock **new_bb, struct bblock **old_bb);
 void add_return(struct bblock *bb);
 void link_block(struct bblock *branch_to, struct bblock *branch_in);

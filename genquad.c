@@ -43,6 +43,14 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 				array_type_length = get_type(node->u.ident.entry);
 				return target;
 			}
+			case AST_pointer: {
+				if (!target) {
+					target = new_temporary(reg_counter);
+					reg_counter++;
+				}
+				emit(LEA, node, NULL, target, bb);
+				return target;
+			}
 		}
 		return node;
 	}
@@ -171,6 +179,17 @@ struct astnode* gen_lvalue(struct astnode *node, int *mode, struct bblock *bb) {
 	if (node->node_type == AST_pointer) {
 		*mode = INDIRECT;
 		return gen_rvalue(node->next_node, NULL, bb);
+	}
+	if (node->node_type == AST_unary) {
+		switch(node->u.unaop.operator) {
+			case '*': {
+				struct astnode *addr = gen_rvalue(node->u.unaop.right, NULL, bb);
+				return addr;
+			}
+			default: {
+				fprintf(stderr, "****Error: Invalid unary op at lvalue during quad gen****\n");
+			}
+		} 
 	}
 	return NULL;
 }

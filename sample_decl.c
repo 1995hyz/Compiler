@@ -1,5 +1,5 @@
 int f() {
 	int a[10];
-	int *p;
-	p = a + 5;
+	int b;
+	a[2] = b;
 }

@@ -32,6 +32,21 @@ int get_type(struct sym_entry *entry) {
 	return -1;
 }
 
+int get_offset(struct sym_table *table, char *name) {
+	int offset = 0;
+	struct sym_entry *entry = table->first;
+	while(entry != NULL) {
+		if(strncmp(entry->name, name, 1024) != 0) {
+			offset = offset + get_type(entry);
+			entry = entry->next;
+		}
+		else {
+			return offset;
+		}
+	}
+	return -1;
+} 
+
 struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct bblock *bb) {
 	if (node->node_type == AST_ident) {
 		switch(node->u.ident.entry->first_node->node_type) {
@@ -58,6 +73,23 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 		return node;
 	}
 	if (node->node_type == AST_binop) {
+		if (node->u.binop.operator == '.') {
+			struct astnode *base = gen_addressof(node->u.binop.left, bb);
+			struct sym_entry *test = search_entry(curr_table, "s1", STRUCT_TYPE);//node->u.binop.left->u.ident.entry->first_node->u.stru.name, STRUCT_TYPE);
+			if(test != NULL) {
+				printf("%s\n", test->name);
+			}
+			else {
+				printf("Not Found\n");
+			}
+			int offset = get_offset(node->u.binop.left->u.ident.entry->e.stru.table, node->u.binop.right->u.ident.name);
+			struct astnode *temp_target = new_temporary(reg_counter);
+			reg_counter++;
+			struct astnode *temp = astnode_alloc(AST_num);
+			temp->u.num.value = offset;
+			emit('+', base, temp, temp_target, bb);
+			return temp_target;
+		}
 		struct astnode* left = gen_rvalue(node->u.binop.left, NULL, bb);
 		struct astnode* right = gen_rvalue(node->u.binop.right, NULL, bb);
 		if (!target) {
@@ -214,6 +246,21 @@ struct astnode* gen_assign(struct astnode *node, struct bblock *bb) {
 		emit(STORE, t1, dst, NULL, bb);
 	}
 	return NULL;
+}
+
+struct astnode* gen_addressof(struct astnode *node, struct bblock *bb) {
+	switch(node->node_type) {
+		case AST_ident: {
+			struct astnode *temp = new_temporary(reg_counter);
+			reg_counter++;
+			emit(LEA, node, NULL, temp, bb);
+			return temp;
+		}
+		default: {
+			fprintf(stderr, "****Error: Invalid astnode during address generation of quad generation****\n");
+		}
+	}
+	return node;
 }
 
 struct astnode* gen_condexp(struct astnode *node, struct bblock *bb) {

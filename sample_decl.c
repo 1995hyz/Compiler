@@ -1,5 +1,9 @@
-int f() {
-	int a[10];
+struct s1 {
+	int a;
 	int b;
-	a[2] = b;
+} str1;
+
+int f() {
+	int c;
+	c = str1.a;
 }

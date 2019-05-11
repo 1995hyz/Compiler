@@ -47,6 +47,7 @@ struct quad* emit(int opcode, struct astnode *src1, struct astnode *src2, struct
 struct bblock* gen_quad(struct astnode *node, struct bblock *bb);
 struct astnode* gen_assign(struct astnode *node, struct bblock *bb);
 struct astnode* gen_condexp(struct astnode *node, struct bblock *bb);
+struct astnode* gen_addressof(struct astnode *node, struct bblock *bb);
 struct quad* gen_if(struct astnode *node, struct bblock *prev_bb);
 struct quad* gen_while(struct astnode *node, struct bblock *prev_bb, struct bblock *next_bb);
 struct quad* gen_func(struct astnode *node, struct bblock* curr_bb, struct bblock* new_bb);

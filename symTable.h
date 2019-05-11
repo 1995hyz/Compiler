@@ -72,5 +72,6 @@ int print_entry(struct sym_entry* entry, int step_in);
 int print_table(struct sym_table* table);
 struct sym_entry* add_entry(struct astnode* astnode, struct sym_table *curr_scope, char *def_file, int def_num);
 struct sym_entry* search_all(struct sym_table *curr_table, char *ident, int entry_type);
+struct sym_entry* search_entry(struct sym_table *curr_table, char *ident, int entry_type);
 
 #endif //_SYMTABLE_H

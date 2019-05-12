@@ -204,7 +204,7 @@ int print_scope(struct sym_entry* entry) {
 	return 0;
 }
 
-int print_entry(struct sym_entry* entry, int step_in) {
+int print_entry(struct sym_entry* entry) {
 	switch(entry->entry_type) {
 		case VAR_TYPE: {
 			printf("%s is defined at %s:%d ", entry->name, entry->def_file, entry->def_num);
@@ -216,9 +216,6 @@ int print_entry(struct sym_entry* entry, int step_in) {
 			break;
 		}
 		case STRUCT_TYPE: {
-			if(step_in == 1) {
-				break;
-			}
 			if(entry->e.stru.complete == 1) {
 				if((entry->name)[0] == '\0') {
 					printf("struct (anonymous) ");
@@ -236,9 +233,6 @@ int print_entry(struct sym_entry* entry, int step_in) {
 			break;
 		}
 		case UNION_TYPE: {
-			if(step_in == 1) {
-				break;
-			}
 			if(entry->e.uni.complete == 1) {
 				if((entry->name)[0] == '\0') {
 					printf("union (anonymous) ");
@@ -290,7 +284,7 @@ int print_table(struct sym_table* table) {
 	counter = 0;
 	struct sym_entry *n = table->first;
 	while(n != NULL) {
-		print_entry(n, 1);
+		print_entry(n);
 		counter = counter + 1;
 		n = n->next;
 	}

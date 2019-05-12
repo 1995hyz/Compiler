@@ -5,5 +5,5 @@ struct s1 {
 
 int f() {
 	int c;
-	c = str1.a;
+	c = str1.b;
 }

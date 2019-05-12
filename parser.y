@@ -184,7 +184,7 @@ function_definition:
 		struct sym_table *temp = curr_scope;
 		exit_scope();
 		curr_scope->last->e.func.complete = 1;
-		print_entry(curr_scope->last, 0);
+		print_entry(curr_scope->last);
 		
 		if($5 != NULL) {
 			printf("AST Dump for function\n");
@@ -956,7 +956,7 @@ init_declarator_list:
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
 		add_storage_class(n);
-		print_entry(n, 0);
+		print_entry(n);
 		front = NULL;
 		end = NULL;
 	}
@@ -964,7 +964,7 @@ init_declarator_list:
 		astnode_link(&front, &end, $<astnode_p>0);
 		struct sym_entry *n = add_entry(front, curr_scope, file_name, yylineno);
 		add_storage_class(n);
-		print_entry(n, 0);
+		print_entry(n);
 		front = NULL;
 		end = NULL;
 	}
@@ -1143,7 +1143,7 @@ struct_or_union_specifier:
 		else {
 			struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
 			new_entry->e.stru.complete = 0;
-			print_entry(new_entry, 0);
+			print_entry(new_entry);
 			$$ = $1;
 		}
 	}
@@ -1164,7 +1164,7 @@ struct_or_union_specifier:
 		new_entry->e.stru.complete = 1;
 		new_entry->e.stru.table = temp;
 		$1->u.stru.entry = new_entry;
-		print_entry(new_entry, 0);
+		print_entry(new_entry);
 		$$ = $1;
 	}
 	| struct_or_union IDENT { enter_scope(STRUCT_SCOPE); strncpy(curr_scope->name, $2, 1024);} '{' struct_declaration_list '}' {
@@ -1190,15 +1190,20 @@ struct_or_union_specifier:
 				finding->e.stru.table = temp;
 				finding->def_num = yylineno;
 				strncpy(finding->def_file, file_name, 1024);
-				print_entry(finding, 0);
+				print_entry(finding);
 			}
 		}
 		else {
-			struct sym_entry *new_entry = sym_entry_alloc(n->u.ident.ident_type, n->u.ident.name, NULL, NULL, file_name, yylineno);
+			/*struct sym_entry *new_entry = sym_entry_alloc(n->u.ident.ident_type, n->u.ident.name, NULL, NULL, file_name, yylineno);
 			new_entry->e.stru.complete = 1;
 			new_entry->e.stru.table = temp;
 			//$1->u.stru.entry = new_entry;
-			print_entry(new_entry, 0);
+			print_entry(new_entry, 0);*/
+			struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);
+			new_entry->e.stru.complete = 1;
+			new_entry->e.stru.table = temp;
+			add_storage_class(new_entry);
+			print_entry(new_entry);
 		}
 		$$ = $1;
 	} 

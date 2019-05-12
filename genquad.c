@@ -75,14 +75,8 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 	if (node->node_type == AST_binop) {
 		if (node->u.binop.operator == '.') {
 			struct astnode *base = gen_addressof(node->u.binop.left, bb);
-			struct sym_entry *test = search_entry(curr_table, "s1", STRUCT_TYPE);//node->u.binop.left->u.ident.entry->first_node->u.stru.name, STRUCT_TYPE);
-			if(test != NULL) {
-				printf("%s\n", test->name);
-			}
-			else {
-				printf("Not Found\n");
-			}
-			int offset = get_offset(node->u.binop.left->u.ident.entry->e.stru.table, node->u.binop.right->u.ident.name);
+			struct sym_entry *test = search_entry(curr_table, node->u.binop.left->u.ident.entry->first_node->u.stru.name, STRUCT_TYPE);
+			int offset = get_offset(test->e.stru.table, node->u.binop.right->u.ident.name);
 			struct astnode *temp_target = new_temporary(reg_counter);
 			reg_counter++;
 			struct astnode *temp = astnode_alloc(AST_num);

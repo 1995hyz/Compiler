@@ -1,9 +1,11 @@
 struct s1 {
 	int a;
+	char c;
+	long d;
 	int b;
 } str1;
 
 int f() {
 	int c;
-	c = str1.b;
+	str1.a = c;
 }

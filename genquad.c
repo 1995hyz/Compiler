@@ -18,7 +18,9 @@ int get_type(struct sym_entry *entry) {
 		if(node->node_type == AST_scaler) {
 			switch(node->u.scaler.scaler_type) {
 				case CHAR: return 1;
+				case SHORT: return 2;
 				case INT: return 4;
+				case LONG: return 8;
 				default: return 4;
 			}
 		}
@@ -34,9 +36,19 @@ int get_type(struct sym_entry *entry) {
 
 int get_offset(struct sym_table *table, char *name) {
 	int offset = 0;
+	int type_length = 4;
 	struct sym_entry *entry = table->first;
 	while(entry != NULL) {
 		if(strncmp(entry->name, name, 1024) != 0) {
+			type_length = get_type(entry);
+			while(1) {
+				if( offset % type_length == 0) {
+					break;
+				}
+				else {
+					offset++;
+				}
+			}
 			offset = offset + get_type(entry);
 			entry = entry->next;
 		}
@@ -74,15 +86,7 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 	}
 	if (node->node_type == AST_binop) {
 		if (node->u.binop.operator == '.') {
-			struct astnode *base = gen_addressof(node->u.binop.left, bb);
-			struct sym_entry *test = search_entry(curr_table, node->u.binop.left->u.ident.entry->first_node->u.stru.name, STRUCT_TYPE);
-			int offset = get_offset(test->e.stru.table, node->u.binop.right->u.ident.name);
-			struct astnode *temp_target = new_temporary(reg_counter);
-			reg_counter++;
-			struct astnode *temp = astnode_alloc(AST_num);
-			temp->u.num.value = offset;
-			emit('+', base, temp, temp_target, bb);
-			return temp_target;
+			return gen_struct(node, bb);
 		}
 		struct astnode* left = gen_rvalue(node->u.binop.left, NULL, bb);
 		struct astnode* right = gen_rvalue(node->u.binop.right, NULL, bb);
@@ -180,7 +184,7 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 					target = new_temporary(reg_counter);
 					reg_counter++;
 				}
-				struct quad *new_quad = emit(LOAD, addr, NULL, temp, bb); // Must load addr into a temp reg instead of a variable
+				struct quad *new_quad = emit(MOV, addr, NULL, temp, bb); // Must load addr into a temp reg instead of a variable
 				return temp;
 			}
 			case SIZEOF: {
@@ -217,7 +221,30 @@ struct astnode* gen_lvalue(struct astnode *node, int *mode, struct bblock *bb) {
 			}
 		} 
 	}
+	if (node->node_type == AST_binop) {
+		switch(node->u.binop.operator) {
+			case '.': {
+				return gen_struct(node, bb);
+			}
+		}
+	}
 	return NULL;
+}
+
+struct astnode* gen_struct(struct astnode *node, struct bblock *bb) {
+	struct astnode *base = gen_addressof(node->u.binop.left, bb);
+	struct sym_entry *test = search_entry(curr_table, node->u.binop.left->u.ident.entry->first_node->u.stru.name, STRUCT_TYPE);
+	if (test == NULL) {
+		fprintf(stderr, "****Error: Cannot find struct %d while generating quad****", node->u.binop.left->u.ident.entry->first_node->u.stru.name);
+		exit(1);
+	}
+	int offset = get_offset(test->e.stru.table, node->u.binop.right->u.ident.name);
+	struct astnode *temp_target = new_temporary(reg_counter);
+	reg_counter++;
+	struct astnode *temp = astnode_alloc(AST_num);
+	temp->u.num.value = offset;
+	emit('+', base, temp, temp_target, bb);
+	return temp_target;
 }
 
 struct astnode* gen_assign(struct astnode *node, struct bblock *bb) {
@@ -232,7 +259,7 @@ struct astnode* gen_assign(struct astnode *node, struct bblock *bb) {
 			emit(MOV, node_rval, NULL, dst, bb);
 		}
 		else if (node_rval->node_type == AST_temp) {
-			emit(MOV, node_rval, NULL, dst, bb);
+			emit(LOAD, node_rval, NULL, dst, bb);
 		}
 	}
 	else {

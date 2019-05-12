@@ -1,0 +1,40 @@
+>>>>>>>>>>>>
+p is defined at "example5.c":1 [in global scope starting at 1] as a variable with stgclass extern  of type:
+ pointer to
+ CHAR
+a is defined at "example5.c":2 [in global scope starting at 1] as a variable with stgclass extern  of type:
+ INT
+b is defined at "example5.c":5 [in function scope starting at 4] as a variable with stgclass auto  of type:
+ array #10
+ INT
+f is defined at "example5.c":4 [in global scope starting at 1] as a/an extern function returning  INT
+AST Dump for function
+LIST {
+ ASSIGNMENT
+  UNARY OP *
+   stab_var name=p def @"example5.c":1
+  NUM 1
+ ASSIGNMENT
+  stab_var name=a def @"example5.c":2
+  UNARY OP *
+   stab_var name=p def @"example5.c":1
+ ASSIGNMENT
+  UNARY OP *
+   BINARY OP +
+    stab_var name=b def @"example5.c":5
+    NUM 2
+  stab_var name=a def @"example5.c":2
+ }
+************************
+.BB0.0 :
+	%T0	LEA	p{global}
+		STORE	1,%T0
+	%T1	LEA	p{global}
+	%T2	MOV	%T1
+	a=	LOAD	%T2
+	%T3	LEA	b{lvar}
+	%T5	MUL	4,2
+	%T4	ADD	%T3,%T5
+		STORE	a{global},%T4
+		RET	
+************************

@@ -1,34 +1,34 @@
 >>>>>>>>>>>>
-a is defined at "sample_decl.c":2 [in function scope starting at 1] as a variable with stgclass auto  of type:
+a is defined at "example3.c":2 [in function scope starting at 1] as a variable with stgclass auto  of type:
  INT
-b is defined at "sample_decl.c":3 [in function scope starting at 1] as a variable with stgclass auto  of type:
+b is defined at "example3.c":3 [in function scope starting at 1] as a variable with stgclass auto  of type:
  INT
-z is defined at "sample_decl.c":1 [in global scope starting at 1] as a/an extern function returning  INT
+z is defined at "example3.c":1 [in global scope starting at 1] as a/an extern function returning  INT
 AST Dump for function
 LIST {
  IF, EXPR:
   COMPARISON OP >
-   stab_var name=a def @"sample_decl.c":2
-   stab_var name=b def @"sample_decl.c":3
+   stab_var name=a def @"example3.c":2
+   stab_var name=b def @"example3.c":3
  BODY:
   LIST {
        ASSIGNMENT
-     stab_var name=a def @"sample_decl.c":2
+     stab_var name=a def @"example3.c":2
      NUM 1
   }
  IF, EXPR:
   COMPARISON OP !=
-   stab_var name=b def @"sample_decl.c":3
-   stab_var name=a def @"sample_decl.c":2
+   stab_var name=b def @"example3.c":3
+   stab_var name=a def @"example3.c":2
  BODY:
   LIST {
        ASSIGNMENT
-     stab_var name=b def @"sample_decl.c":3
+     stab_var name=b def @"example3.c":3
      NUM 3
   }
   LIST {
        ASSIGNMENT
-     stab_var name=a def @"sample_decl.c":2
+     stab_var name=a def @"example3.c":2
      NUM 3
   }
  }

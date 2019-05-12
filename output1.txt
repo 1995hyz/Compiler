@@ -45,8 +45,8 @@ LIST {
 	%T2	LEA	a{lvar}
 	%T4	MUL	4,2
 	%T3	ADD	%T2,%T4
-	%T5	LOAD	%T3
-	x=	MOV	%T5
+	%T5	MOV	%T3
+	x=	LOAD	%T5
 		BR	.BB0.1
 .BB0.1 :
 		CMP	x{lvar},1

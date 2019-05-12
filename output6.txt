@@ -1,0 +1,37 @@
+>>>>>>>>>>>>
+struct s1 definition at "example6.c":5 {
+a is defined at "example6.c":2 [in struct/union scope starting at 1] as a field of struct/union s1 of type:
+ INT
+b is defined at "example6.c":3 [in struct/union scope starting at 1] as a field of struct/union s1 of type:
+ CHAR
+d is defined at "example6.c":4 [in struct/union scope starting at 1] as a field of struct/union s1 of type:
+ INT
+}
+str1 is defined at "example6.c":10 [in function scope starting at 9] as a variable with stgclass auto  of type:
+ struct s1
+e is defined at "example6.c":11 [in function scope starting at 9] as a variable with stgclass auto  of type:
+ INT
+x is defined at "example6.c":12 [in function scope starting at 9] as a variable with stgclass auto  of type:
+ CHAR
+f is defined at "example6.c":9 [in global scope starting at 1] as a/an extern function returning  INT
+AST Dump for function
+LIST {
+ ASSIGNMENT
+  SELECT
+   stab_var name=str1 def @"example6.c":10
+     stab_var name=e def @"example6.c":11
+ ASSIGNMENT
+  stab_var name=x def @"example6.c":12
+  SELECT
+   stab_var name=str1 def @"example6.c":10
+    }
+************************
+.BB0.0 :
+	%T0	LEA	str1{lvar}
+	%T1	ADD	%T0,8
+		STORE	e{lvar},%T1
+	%T2	LEA	str1{lvar}
+	%T3	ADD	%T2,4
+	x=	LOAD	%T3
+		RET	
+************************

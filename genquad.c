@@ -19,8 +19,8 @@ int get_type(struct sym_entry *entry) {
 			switch(node->u.scaler.scaler_type) {
 				case CHAR: return 1;
 				case SHORT: return 2;
-				case INT: return 4;
 				case LONG: return 8;
+				case INT: return 4;
 				default: return 4;
 			}
 		}
@@ -53,6 +53,15 @@ int get_offset(struct sym_table *table, char *name) {
 			entry = entry->next;
 		}
 		else {
+			type_length = get_type(entry);
+			while(1) {
+				if( offset % type_length == 0) {
+					break;
+				}
+				else {
+					offset++;
+				}
+			}
 			return offset;
 		}
 	}
@@ -240,13 +249,26 @@ struct astnode* gen_lvalue(struct astnode *node, int *mode, struct bblock *bb) {
 }
 
 struct astnode* gen_struct(struct astnode *node, struct bblock *bb) {
-	struct astnode *base = gen_addressof(node->u.binop.left, bb);
-	struct sym_entry *test = search_entry(curr_table, node->u.binop.left->u.ident.entry->first_node->u.stru.name, STRUCT_TYPE);
-	if (test == NULL) {
-		fprintf(stderr, "****Error: Cannot find struct %d while generating quad****", node->u.binop.left->u.ident.entry->first_node->u.stru.name);
+	struct astnode *base;
+	struct sym_entry *finding;
+	char *name_pointer;
+	/*if (node->u.binop.left->node_type == AST_unary) {
+		if (node->u.binop.left->u.unaop.operator == '*') {
+			base = node->u.unaop.right;
+			name_pointer = node->u.binop.left->u.unaop.right->u.ident.entry->first_node->u.stru.name;
+		}
+		else {
+			fprintf(stderr, "****Error: Invalid unary op linked with struct****\n");
+		}
+	}*/
+	base = gen_addressof(node->u.binop.left, bb);
+	name_pointer = node->u.binop.left->u.ident.entry->first_node->u.stru.name;
+	finding = search_all(curr_table, name_pointer, STRUCT_TYPE);
+	if (finding == NULL) {
+		fprintf(stderr, "****Error: Cannot find struct %d while generating quad****\n", name_pointer);
 		exit(1);
 	}
-	int offset = get_offset(test->e.stru.table, node->u.binop.right->u.ident.name);
+	int offset = get_offset(finding->e.stru.table, node->u.binop.right->u.ident.name);
 	struct astnode *temp_target = new_temporary(reg_counter);
 	reg_counter++;
 	struct astnode *temp = astnode_alloc(AST_num);

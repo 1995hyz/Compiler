@@ -192,7 +192,7 @@ function_definition:
 			print_tree($5->u.blo.start, 0);
 			printf(" }\n");
 			printf("************************\n");
-			gen_init($5->u.blo.start, curr_scope, func_counter);
+			gen_init($5->u.blo.start, temp, func_counter);
 			func_counter++;
 			printf("************************\n");
 		}
@@ -1138,7 +1138,8 @@ struct_or_union_specifier:
 		}
 		struct sym_entry *finding = search_all(curr_scope, $2, STRUCT_TYPE);
 		if(finding != NULL) {
-			yyerror("Variable has already been defined");
+			//yyerror("Variable has already been defined");
+			$$ = $1;
 		}
 		else {
 			struct sym_entry *new_entry = add_entry(n, curr_scope, file_name, yylineno);

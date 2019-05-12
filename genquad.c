@@ -251,21 +251,23 @@ struct astnode* gen_lvalue(struct astnode *node, int *mode, struct bblock *bb) {
 struct astnode* gen_struct(struct astnode *node, struct bblock *bb) {
 	struct astnode *base;
 	struct sym_entry *finding;
-	char *name_pointer;
-	/*if (node->u.binop.left->node_type == AST_unary) {
+	char *stru_pointer;
+	if (node->u.binop.left->node_type == AST_unary) {
 		if (node->u.binop.left->u.unaop.operator == '*') {
-			base = node->u.unaop.right;
-			name_pointer = node->u.binop.left->u.unaop.right->u.ident.entry->first_node->u.stru.name;
+			base = node->u.binop.left->u.unaop.right;
+			stru_pointer = node->u.binop.left->u.unaop.right->u.ident.entry->first_node->next_node->u.stru.name;
 		}
 		else {
 			fprintf(stderr, "****Error: Invalid unary op linked with struct****\n");
 		}
-	}*/
-	base = gen_addressof(node->u.binop.left, bb);
-	name_pointer = node->u.binop.left->u.ident.entry->first_node->u.stru.name;
-	finding = search_all(curr_table, name_pointer, STRUCT_TYPE);
+	}
+	else {
+		base = gen_addressof(node->u.binop.left, bb);
+		stru_pointer = node->u.binop.left->u.ident.entry->first_node->u.stru.name;
+	}
+	finding = search_all(curr_table, stru_pointer, STRUCT_TYPE);
 	if (finding == NULL) {
-		fprintf(stderr, "****Error: Cannot find struct %d while generating quad****\n", name_pointer);
+		fprintf(stderr, "****Error: Cannot find struct %d while generating quad****\n", stru_pointer);
 		exit(1);
 	}
 	int offset = get_offset(finding->e.stru.table, node->u.binop.right->u.ident.name);

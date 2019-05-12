@@ -49,6 +49,7 @@ struct astnode* gen_assign(struct astnode *node, struct bblock *bb);
 struct astnode* gen_condexp(struct astnode *node, struct bblock *bb);
 struct astnode* gen_addressof(struct astnode *node, struct bblock *bb);
 struct astnode* gen_struct(struct astnode *node, struct bblock *bb);
+struct astnode* gen_post(struct astnode *node, struct bblock *bb, int post_op);
 struct quad* gen_if(struct astnode *node, struct bblock *prev_bb);
 struct quad* gen_while(struct astnode *node, struct bblock *prev_bb, struct bblock *next_bb);
 struct quad* gen_func(struct astnode *node, struct bblock* curr_bb, struct bblock* new_bb);

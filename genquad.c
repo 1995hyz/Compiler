@@ -187,6 +187,14 @@ struct astnode* gen_rvalue(struct astnode *node, struct astnode *target, struct 
 				struct quad *new_quad = emit(MOV, addr, NULL, temp, bb); // Must load addr into a temp reg instead of a variable
 				return temp;
 			}
+			case PLUSPLUS: {
+				struct astnode *temp = gen_post(node->u.unaop.right, bb, '+');
+				return temp;
+			}
+			case MINUSMINUS: {
+				struct astnode *temp = gen_post(node->u.unaop.right, bb, '-');
+				return temp;
+			}
 			case SIZEOF: {
 				int type_size = get_type(node->u.unaop.right->u.ident.entry); // Assume sizeof only follows an ident
 				struct astnode *var_size = astnode_alloc(AST_num);
@@ -387,6 +395,16 @@ struct quad* gen_func(struct astnode *node, struct bblock* curr_bb, struct bbloc
 	return branch;
 }
 
+struct astnode* gen_post(struct astnode *node, struct bblock *bb, int post_op) {
+	struct astnode *temp = new_temporary(reg_counter);
+	reg_counter++;
+	emit(MOV, node, NULL, temp, bb);
+	struct astnode *change = astnode_alloc(AST_num);
+	change->u.num.value = 1;
+	emit(post_op, node, change, node, bb);
+	return temp;
+}
+
 int argu_counter(struct astnode *node) {
 	int counter = 0;
 	struct astnode *temp = node->u.func.next;
@@ -464,8 +482,23 @@ struct bblock* gen_quad(struct astnode *node, struct bblock *bb) {
 			struct quad *branch = gen_func(node, bb, new_bb);
 			break;
 		}
+		case AST_unary:
+		{	switch(node->u.unaop.operator) {
+				case PLUSPLUS: {
+					gen_post(node->u.unaop.right, bb, '+');
+					break;
+				}
+				case MINUSMINUS: {
+					gen_post(node->u.unaop.right, bb, '-');
+					break;
+				}
+				default: {
+					fprintf(stderr, "****Error: Invalid unary operator during generating quad****\n");
+				}
+			}
+		}
 		default:
-		{	printf("****Error: Unknown astnode during generating quad.****\n");
+		{	printf("****Error: Invalid astnode during generating quad.****\n");
 		}
 	}
 	return new_bb;

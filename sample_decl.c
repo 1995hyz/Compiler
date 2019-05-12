@@ -1,11 +1,8 @@
-struct s1 {
-	int a;
-	char c;
-	long d;
-	int b;
-} str1;
+int a;
+int b;
+int c;
 
 int f() {
-	int c;
-	str1.a = c;
+	b = c + a++;
+	
 }
